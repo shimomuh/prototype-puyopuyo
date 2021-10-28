@@ -1,8 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
 
-namespace Puypuyo.UI {
+namespace Puyopuyo.UI {
     public class Puyo : MonoBehaviour
     {
         private float MOVE_FALL_AMOUNT = -0.5f;
@@ -10,21 +11,20 @@ namespace Puypuyo.UI {
         private float MOVE_TOUCH_WAITING_SECONDS = 1f;
         private Puyopuyo.Domain.IClock fallClock;
         private Puyopuyo.Domain.IClock touchClock;
-        private Puyopuyo.Domain.IPuyoStateMachine state;
+        public Puyopuyo.Domain.IPuyoStateMachine State { get; private set; }
         private Collider collider;
+        private string CONTROLLING_TAG = "ControllingPuyo";
+        private string OBJECT_TAG = "ObjectPuyo";
 
         private void Awake()
         {
-            transform.position = new Vector3(-0.5f, 1, 0);
+            gameObject.tag = CONTROLLING_TAG;
             fallClock = new Puyopuyo.Domain.Clock(MOVE_FALL_WAITING_SECONDS);
+            fallClock.StartTime();
             touchClock = new Puyopuyo.Domain.Clock(MOVE_TOUCH_WAITING_SECONDS);
             touchClock.StopTime();
-            state = new Puyopuyo.Domain.PuyoStateMachine();
+            State = new Puyopuyo.Domain.PuyoStateMachine();
             collider = gameObject.GetComponent<Collider>();
-        }
-
-        private void Start() {
-            fallClock.StartTime();
         }
 
         private void Update()
@@ -50,14 +50,15 @@ namespace Puypuyo.UI {
             if (touchClock.IsRing) {
                 touchClock.StopTime();
                 touchClock.ResetAll();
-                state.ToStay();
+                State.ToStay();
+                gameObject.tag = OBJECT_TAG;
                 StartCoroutine(StayAnimation());
             }
         }
 
         private void AutoDown()
         {
-            if (!state.CanFall()) { return; }
+            if (!State.CanFall()) { return; }
             transform.Translate(0, MOVE_FALL_AMOUNT, 0);
         } 
 
@@ -80,13 +81,20 @@ namespace Puypuyo.UI {
             yield return null;
         }
 
-        void OnCollisionEnter(Collision collision)
+        public void ToTouch()
         {
-            if (state.IsStay) { return; }
-            state.ToTouch();
+            if (State.IsTouch) { return; }
+            State.ToTouch();
             fallClock.ResetAll();
             touchClock.ResetAll();
             touchClock.StartTime();
+        }
+
+        void OnCollisionEnter(Collision collision)
+        {
+            if (collision.collider.gameObject.tag == CONTROLLING_TAG) { return; }
+            if (State.IsStay) { return; }
+            ToTouch();
         }
     }
 }
