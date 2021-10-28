@@ -3,6 +3,7 @@ using System;
 namespace Puyopuyo.Domain {
     public interface IPuyoStateMachine {
         bool IsStay { get; }
+        bool IsTouch { get; }
         bool CanFall();
         void ToFall();
         void ToTouch();
@@ -16,6 +17,7 @@ namespace Puyopuyo.Domain {
         }
         private State currentState;
         public bool IsStay => currentState == State.Stay;
+        public bool IsTouch => currentState == State.Touch;
 
         public PuyoStateMachine ()
         {
