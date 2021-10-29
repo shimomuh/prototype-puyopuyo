@@ -6,13 +6,7 @@ using UnityEngine;
 namespace Puyopuyo.Application {
     public class PuyoGenerator : SingletonMonoBehaviour<PuyoGenerator>
     {
-        private string PUYO_PREFAB_PATH = "Prefabs/Puyo";
-
-        private void Awake()
-        {
-            base.Awake();
-            Permanent();
-        }
+        private const string PUYO_PREFAB_PATH = "Prefabs/Puyo";
 
         public Puyopuyo.UI.Puyo Generate(Transform parentTransform, Vector3 initialPosition)
         {

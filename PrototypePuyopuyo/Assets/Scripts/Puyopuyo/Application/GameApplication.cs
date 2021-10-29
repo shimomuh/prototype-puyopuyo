@@ -11,6 +11,9 @@ namespace Puyopuyo.Application {
             UnityEngine.Application.targetFrameRate = 60;
             MakeSingletonMonoBehavoiur("PuyoGenerator");
             MakeSingletonMonoBehavoiur("PuyopuyoGenerator");
+            MakeSingletonMonoBehavoiur("PuyoController");
+            MakeSingletonMonoBehavoiur("SkeltonColliderCollectionGenerator");
+            MakeSingletonMonoBehavoiur("SkeltonColliderGenerator");
         }
 
         private void MakeSingletonMonoBehavoiur(string name)

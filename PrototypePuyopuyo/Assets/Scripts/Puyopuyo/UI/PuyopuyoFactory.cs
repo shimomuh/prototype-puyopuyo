@@ -7,7 +7,7 @@ namespace Puyopuyo.UI {
     public class PuyopuyoFactory : MonoBehaviour
     {
         [SerializeField] private GameObject button;
-        private Vector3 INITIAL_POSITION = new Vector3(0.5f, 12f, 0f);
+        private Vector3 INITIAL_POSITION = new Vector3(0f, 12f, 0f);
         [SerializeField] private GameObject field;
 
         private void Awake() {
@@ -26,7 +26,7 @@ namespace Puyopuyo.UI {
 
         public void OnClick()
         {
-            Puyopuyo.Application.PuyopuyoGenerator.Instance.Generate(field.transform, new Vector3(-0.5f, 4, 0));
+            Puyopuyo.Application.PuyopuyoGenerator.Instance.Generate(field.transform, INITIAL_POSITION);
         }
     }
 }

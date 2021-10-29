@@ -4,8 +4,9 @@
 TagManager:
   serializedVersion: 2
   tags:
-  - ControllingPuyo
-  - ObjectPuyo
+  - Puyo
+  - Wall
+  - Skelton
   layers:
   - Default
   - TransparentFX

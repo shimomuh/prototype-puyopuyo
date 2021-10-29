@@ -2,61 +2,52 @@ using UnityEngine;
 
 namespace Puyopuyo.Domain {
     public interface IClock {
-        float TimeToGoRound { get; }
-        bool IsRing { get; }
+        IClockAlarm Alarm { get; }
+        IClockBattery Battery { get; }
         bool CanTikTok { get; }
         void TikTok();
-        void StopTime();
-        void StartTime();
-        void ResetAll();
-        void StopRing();
+        void ReturnShippingState();
+        void SetHandsToZero();
     }
 
     public class Clock : IClock {
-        public float TimeToGoRound { get; private set; }
-        public float currentTime;
-        public bool IsRing { get; private set; }
-        public bool CanTikTok { get; private set; }
+        private float timeToGoRound;
+        private float currentTime;
+
+        public IClockAlarm Alarm { get; private set; }
+        public IClockBattery Battery { get; private set; }
+        public bool CanTikTok { get { return Battery.CanProvideEnergy; } }
 
         public Clock(float timeToGoRound) {
-            TimeToGoRound = timeToGoRound;
-            ResetAll();
+            this.timeToGoRound = timeToGoRound;
+            currentTime = 0f;
+            Alarm = new ClockAlarm();
+            Battery = new ClockBattery();
+            Battery.Remove();
         }
 
         public void TikTok()
         {
             if (!CanTikTok) { return; }
             currentTime += Time.deltaTime;
-            if (currentTime > TimeToGoRound) {
-                currentTime -= TimeToGoRound;
-                IsRing = true;
+            if (currentTime > timeToGoRound) {
+                currentTime -= timeToGoRound;
+                Alarm.Start();
             }
         }
 
-        public void StopTime()
-        {
-            CanTikTok = false;
-        }
-
-        public void StartTime()
-        {
-            CanTikTok = true;
-        }
-
-        public void StopRing()
-        {
-            IsRing = false;
-        }
-
-        public void ResetAll()
-        {
-            ResetTime();
-            StopRing();
-        }
-
-        private void ResetTime()
+        public void ReturnShippingState()
         {
             currentTime = 0f;
+            Alarm.Stop();
+            Battery.Remove();
+        }
+
+        public void SetHandsToZero()
+        {
+            currentTime = 0f;
+            Alarm.Stop();
+            Battery.Insert();
         }
     }
 }
