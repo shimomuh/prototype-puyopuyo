@@ -2,9 +2,10 @@ using System;
 
 namespace Puyopuyo.Domain {
     public interface IPuyoStateMachine {
-        bool IsStay { get; }
+        bool CanFall { get; }
+        bool IsFall { get; }
         bool IsTouch { get; }
-        bool CanFall();
+        bool IsStay { get; }
         void ToFall();
         void ToTouch();
         void ToStay();
@@ -16,17 +17,14 @@ namespace Puyopuyo.Domain {
             Stay
         }
         private State currentState;
-        public bool IsStay => currentState == State.Stay;
+        public bool CanFall => currentState == State.Fall;
+        public bool IsFall => currentState == State.Fall;
         public bool IsTouch => currentState == State.Touch;
+        public bool IsStay => currentState == State.Stay;
 
         public PuyoStateMachine ()
         {
             ToFall();
-        }
-
-        public bool CanFall()
-        {
-            return currentState == State.Fall;
         }
 
         public void ToFall()
