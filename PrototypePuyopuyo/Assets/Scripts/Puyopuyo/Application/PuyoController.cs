@@ -15,28 +15,21 @@ namespace Puyopuyo.Application {
         {
             this.controller = controller;
             this.follower = follower;
-            controller.ToBeControllable();
-            follower.ToBeControllable();
-            NotifyEnvironment();
+            controller.KnowPartner(follower.GameObject);
+            follower.KnowPartner(controller.GameObject);
         }
-
-        private void NotifyEnvironment()
-        {
-            controller.IgnoreTouchObjectTags = new List<string>() { WALL_TAG, SKELTON_TAG };
-            follower.IgnoreTouchObjectTags = new List<string>() { WALL_TAG, SKELTON_TAG };
-        }
-
+        
         public void Update()
         {
             CheckInputEvent();
             PropergateTouchEvent();
-            PropergateStayEvent();
+            //PropergateStayEvent();
         }
 
         private void CheckInputEvent()
         {
             // Input.GetAxis は後で考える
-            if (Input.GetKeyDown("left")) {
+            /*if (Input.GetKeyDown("left")) {
                 if (SkeltonColliderCollectionGenerator.Instance.HasCollision(new List<Direction> { Direction.UpperLeft, Direction.MiddleLeft, Direction.LowerLeft })) { return; }
                 controller.Left();
                 follower.Left();
@@ -51,26 +44,38 @@ namespace Puyopuyo.Application {
             if (Input.GetKeyDown("down")) {
                 controller.Down();
                 follower.Down();
-            }
+            }*/
         }
 
         private void PropergateTouchEvent()
         {
             if (controller == null || follower == null) { return; }
-            if (controller.State.IsTouch && follower.State.IsFall) {
-                follower.ToTouch();
+            // 同期
+            if (controller.State.IsJustTouch && follower.State.IsFalling) {
+                follower.ToJustTouch();
                 // TODO: 仮に ToTouch 時点で Dispose してみる
-                SkeltonColliderCollectionGenerator.Instance.DisposeCollection();
+                //SkeltonColliderCollectionGenerator.Instance.DisposeCollection();
             }
-            if (follower.State.IsTouch && controller.State.IsFall) {
-                controller.ToTouch();
-                SkeltonColliderCollectionGenerator.Instance.DisposeCollection();
+            if (follower.State.IsJustTouch && controller.State.IsFalling) {
+                controller.ToJustTouch();
+                //SkeltonColliderCollectionGenerator.Instance.DisposeCollection();
+            }
+            if (controller.State.IsJustTouch && follower.State.IsJustTouch) {
+                if (controller.IsVerticalWithPartner()) {
+                    controller.AnimateTouch();
+                    follower.AnimateTouch();
+                } else {
+                    if (controller.IsGrounded) { controller.AnimateTouch(); }
+                    if (follower.IsGrounded) { follower.AnimateTouch(); }
+                }
+                controller.TryToKeepTouching();
+                follower.TryToKeepTouching();
             }
         }
 
         private void PropergateStayEvent()
         {
-            // TODO: なんか機能してなさそう...
+            /*// TODO: なんか機能してなさそう...
             if (controller == null || follower == null) { return; }
             // 本当はこれだけだとダメだが一旦これで。
             if (controller.State.IsStay && follower.State.IsTouch) {
@@ -80,7 +85,7 @@ namespace Puyopuyo.Application {
             if (follower.State.IsStay && controller.State.IsTouch) {
                 controller.ToStay();
                 SkeltonColliderCollectionGenerator.Instance.DisposeCollection();
-            }
+            }*/
         }
 
         public void DisposeObservables()

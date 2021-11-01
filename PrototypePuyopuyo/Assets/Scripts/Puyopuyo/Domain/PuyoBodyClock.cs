@@ -21,8 +21,8 @@ namespace Puyopuyo.Domain {
         private Puyopuyo.Domain.IClock fallClock;
         private Puyopuyo.Domain.IClock touchClock;
 
-        public bool ShouldFallAction { get { return fallClock.Alarm.IsRing; } }
-        public bool ShouldStayAction { get { return touchClock.Alarm.IsRing; } }
+        public bool ShouldFallAction => fallClock.Alarm.IsRing;
+        public bool ShouldStayAction => touchClock.Alarm.IsRing;
 
         public PuyoBodyClock()
         {

@@ -11,7 +11,7 @@ namespace Puyopuyo.Application {
         {
             var controller = Puyopuyo.Application.PuyoGenerator.Instance.Generate(parentTransform, initialPosition);
             var follower = Puyopuyo.Application.PuyoGenerator.Instance.Generate(parentTransform, initialPosition + new Vector3(0, 1, 0));
-            Puyopuyo.Application.SkeltonColliderCollectionGenerator.Instance.Generate(parentTransform, initialPosition);
+            //Puyopuyo.Application.SkeltonColliderCollectionGenerator.Instance.Generate(parentTransform, initialPosition);
             Puyopuyo.Application.PuyoController.Instance.Observe(controller, follower);
         }
     }

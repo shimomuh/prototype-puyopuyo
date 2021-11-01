@@ -2,45 +2,72 @@ using System;
 
 namespace Puyopuyo.Domain {
     public interface IPuyoStateMachine {
-        bool CanFall { get; }
-        bool IsFall { get; }
-        bool IsTouch { get; }
-        bool IsStay { get; }
-        void ToFall();
-        void ToTouch();
-        void ToStay();
+        bool IsFalling { get; }
+        bool IsJustTouch { get; }
+        bool IsTouching { get; }
+        bool IsJustStay { get; }
+        bool IsStaying { get; }
+        void ToFalling();
+        void ToJustTouch();
+        void ToTouching();
+        void ToJustStay();
+        void ToStaying();
     }
     public class PuyoStateMachine : IPuyoStateMachine {
         private enum State {
-            Fall,
-            Touch,
-            Stay
+            Falling,
+            JustTouch,
+            Touching,
+            JustStay,
+            Staying
         }
         private State currentState;
-        public bool CanFall => currentState == State.Fall;
-        public bool IsFall => currentState == State.Fall;
-        public bool IsTouch => currentState == State.Touch;
-        public bool IsStay => currentState == State.Stay;
+        public bool IsFalling => currentState == State.Falling;
+        public bool IsJustTouch => currentState == State.JustTouch;
+        public bool IsTouching => currentState == State.Touching;
+        public bool IsJustStay => currentState == State.JustStay;
+        public bool IsStaying => currentState == State.Staying;
 
         public PuyoStateMachine ()
         {
-            ToFall();
+            ToFalling();
         }
 
-        public void ToFall()
+        public void ToFalling()
         {
-            currentState = State.Fall;
+            currentState = State.Falling;
         }
 
-        public void ToTouch()
+        public void ToJustTouch()
         {
-            if (currentState == State.Stay) { throw new Exception("静止状態から触れている状態にいきなり遷移はできません！"); }
-            currentState = State.Touch;
+            if (IsJustStay || IsStaying) {
+                throw new Exception("「静止状態」から「ちょうど触れた状態」にいきなり遷移はできません！");
+            }
+            currentState = State.JustTouch;
         }
 
-        public void ToStay()
+        public void ToTouching()
         {
-            currentState = State.Stay;
+            if (!IsJustTouch) {
+                throw new Exception("「ちょうど触れた状態」でないと「触れている状態」にいきなり遷移はできません！");
+            }
+            currentState = State.Touching;
+        }
+
+        public void ToJustStay()
+        {
+            if (IsTouching) {
+                throw new Exception("「触れている状態」でないと「ちょうど留まっている状態」にいきなり遷移はできません！");
+            }
+            currentState = State.JustStay;
+        }
+
+        public void ToStaying()
+        {
+            if (IsJustStay) {
+                throw new Exception("「ちょうど留まっている状態」でないと「留まっている状態」にいきなり遷移はできません！");
+            }
+            currentState = State.Staying;
         }
     }
 }

@@ -16,7 +16,7 @@ namespace Puyopuyo.Domain {
 
         public IClockAlarm Alarm { get; private set; }
         public IClockBattery Battery { get; private set; }
-        public bool CanTikTok { get { return Battery.CanProvideEnergy; } }
+        public bool CanTikTok => Battery.CanProvideEnergy;
 
         public Clock(float timeToGoRound) {
             this.timeToGoRound = timeToGoRound;
