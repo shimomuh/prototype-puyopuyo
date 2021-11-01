@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace Puyopuyo.Application {
     public class SkeltonColliderCollectionGenerator : SingletonMonoBehaviour<SkeltonColliderCollectionGenerator>
-    {
+    {/*
         private Dictionary<Direction, Vector3> positionOffsetDict;
         private Dictionary<Direction, Puyopuyo.UI.SkeltonCollider> skeltonColliderDict;
 
@@ -52,6 +52,6 @@ namespace Puyopuyo.Application {
                 { Direction.MiddleRight, new Vector3(1, 0, 0) },
                 { Direction.UpperRight, new Vector3(1, 1, 0) }
             };
-        }
+        }*/
     }
 }

@@ -13,10 +13,10 @@ GameObject:
   - component: {fileID: 8122352340314033496}
   - component: {fileID: 8122352340314033497}
   - component: {fileID: 8122352340314033501}
-  - component: {fileID: 8122352340314033500}
+  - component: {fileID: 7608963650200903629}
   m_Layer: 0
   m_Name: Puyo
-  m_TagString: Puyo
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -110,7 +110,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c1ba1dde192464d6aa837a20db08cee4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!54 &8122352340314033500
+--- !u!54 &7608963650200903629
 Rigidbody:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -120,9 +120,9 @@ Rigidbody:
   serializedVersion: 2
   m_Mass: 1
   m_Drag: 0
-  m_AngularDrag: 0.05
+  m_AngularDrag: 0
   m_UseGravity: 0
   m_IsKinematic: 0
   m_Interpolate: 0
-  m_Constraints: 0
+  m_Constraints: 122
   m_CollisionDetection: 0

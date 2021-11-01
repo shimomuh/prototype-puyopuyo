@@ -5,43 +5,70 @@ using System;
 using System.Linq;
 
 namespace Puyopuyo.UI {
-    public class Puyo : MonoBehaviour
+    public interface IPuyo {
+        Puyopuyo.Domain.IPuyoStateMachine State { get; }
+        bool IsGrounded { get; }
+        void ToFall();
+        void ToJustStay();
+        void ToJustTouch();
+        void TryToKeepTouching();
+        bool IsVerticalWithPartner();
+        void AnimateTouch();
+    }
+    public class Puyo : MonoBehaviour, IPuyo
     {
         private float MOVE_FALL_AMOUNT = -0.5f;
         private Puyopuyo.Domain.IPuyoBodyClock puyoBodyClock;
         public Puyopuyo.Domain.IPuyoStateMachine State { get; private set; }
+        public bool IsGrounded { get; private set; }
+        public GameObject GameObject => gameObject;
+        public GameObject partner;
+        private bool hasPartner => partner != null;
         private Collider collider;
-        private bool IsControllable;
-        public List<string> IgnoreTouchObjectTags { get; set; }
 
         private void Awake()
         {
             puyoBodyClock = new Puyopuyo.Domain.PuyoBodyClock();
             State = new Puyopuyo.Domain.PuyoStateMachine();
             collider = gameObject.GetComponent<Collider>();
-            IgnoreTouchObjectTags = new List<string>() {};
+            IsGrounded = false;
         }
 
-        public void ToBeControllable()
+        public void KnowPartner(GameObject partner)
         {
-            IsControllable = true;
+            if (partner.GetComponent<Puyo>() == null) { throw new Exception("ぷよはぷよしかパートナーに選べません"); }
+            this.partner = partner;
         }
 
         private void Start()
         {
             puyoBodyClock.NotifyBeginToFall();
-            State.ToFall();
+        }
+
+        public void ToFall()
+        {
+            State.ToFalling();
         }
 
         private void Update()
         {
+            //FreeFall();
             UpdateAboutFall();
-            UpdateAboutTouch();
-            UpdateAboutStay();
+            //UpdateAboutTouch();
+            //UpdateAboutStay();
+        }
+
+        /// <summary>
+        /// 基本ぷよは落ちようとする
+        /// </summary>
+        private void FreeFall()
+        {
+            if (!IsGrounded && (State.IsJustTouch || State.IsTouching)) { ToFall(); }
         }
 
         private void UpdateAboutFall()
         {
+            if (!State.IsFalling) { return; }
             puyoBodyClock.UpdateAboutFall();
             if (!puyoBodyClock.ShouldFallAction) { return; }
             AutoDown();
@@ -50,46 +77,54 @@ namespace Puyopuyo.UI {
 
         private void UpdateAboutTouch()
         {
+            if (!State.IsTouching) { return; }
             puyoBodyClock.UpdateAboutTouch();
-            // TODO: 操作によるキャンセル時の処理はここでやる
-            // TODO: 操作によって controller または follower が ToStay の状態になりたいとき
-            // 直下にものがないのを確認したらまた fall する
-            // その時は fall の速度を変えるインターフェースを PuyoBodyClock に実装する
         }
 
         private void UpdateAboutStay()
         {
+            if (!State.IsTouching) { return; }
             if (!puyoBodyClock.ShouldStayAction) { return; }
-            ToStay();
+            ToJustStay();
         }
 
-        public void ToStay()
+        public void ToJustStay()
         {
-            State.ToStay();
-            // NOTE: 一旦アニメーションを切る
-            //StartCoroutine(StayAnimation());
-            puyoBodyClock.NotifyFinishStayAction(); // 手前の処理が非同期だけどまぁいっか
+            State.ToJustStay();
+            puyoBodyClock.NotifyFinishStayAction();
         }
 
         private void AutoDown()
         {
-            if (!State.CanFall) { return; }
+            if (!State.IsFalling) { return; }
             transform.Translate(0, MOVE_FALL_AMOUNT, 0);
         } 
 
-        private IEnumerator StayAnimation()
+        public IEnumerator TouchAnimation()
         {
             collider.enabled = false;
             // Lerp でやりたいけど、もっというとアニメーターでやりたいから一旦仮置き
             transform.localPosition = new Vector3(transform.localPosition.x, transform.localPosition.y - 0.1f, transform.localPosition.z);            
-            transform.localScale = new Vector3(1.25f, 0.9f, 1.25f);
-            yield return new WaitForSeconds(0.05f);
+            transform.localScale = new Vector3(1.1f, 0.9f, 1.1f);
+            yield return new WaitForSeconds(0.01f);
             transform.localPosition = new Vector3(transform.localPosition.x, transform.localPosition.y - 0.1f, transform.localPosition.z);
-            transform.localScale = new Vector3(1.5f, 0.8f, 1.5f);
-            yield return new WaitForSeconds(0.1f);
+            transform.localScale = new Vector3(1.2f, 0.8f, 1.1f);
+            yield return new WaitForSeconds(0.02f);
             transform.localPosition = new Vector3(transform.localPosition.x, transform.localPosition.y + 0.1f, transform.localPosition.z);            
-            transform.localScale = new Vector3(1.25f, 0.9f, 1.25f);
-            yield return new WaitForSeconds(0.05f);
+            transform.localScale = new Vector3(1.1f, 0.9f, 1.1f);
+            yield return new WaitForSeconds(0.01f);
+            transform.localPosition = new Vector3(transform.localPosition.x, transform.localPosition.y + 0.1f, transform.localPosition.z);            
+            transform.localScale = new Vector3(1, 1, 1);
+            yield return new WaitForSeconds(0.01f);
+            transform.localPosition = new Vector3(transform.localPosition.x, transform.localPosition.y - 0.1f, transform.localPosition.z);            
+            transform.localScale = new Vector3(1.1f, 0.9f, 1.1f);
+            yield return new WaitForSeconds(0.01f);
+            transform.localPosition = new Vector3(transform.localPosition.x, transform.localPosition.y - 0.1f, transform.localPosition.z);
+            transform.localScale = new Vector3(1.2f, 0.8f, 1.2f);
+            yield return new WaitForSeconds(0.02f);
+            transform.localPosition = new Vector3(transform.localPosition.x, transform.localPosition.y + 0.1f, transform.localPosition.z);            
+            transform.localScale = new Vector3(1.1f, 0.9f, 1.1f);
+            yield return new WaitForSeconds(0.01f);
             transform.localPosition = new Vector3(transform.localPosition.x, transform.localPosition.y + 0.1f, transform.localPosition.z);            
             transform.localScale = new Vector3(1, 1, 1);
             collider.enabled = true;
@@ -98,39 +133,47 @@ namespace Puyopuyo.UI {
 
         void OnCollisionEnter(Collision collision)
         {
-            if (State.IsStay) { return; }
-            if (IgnoreTouchObjectTags.Contains(collision.collider.gameObject.tag)) { return; }
-            if (CanIgnoreAboutAdjoinedPuyo(collision.collider.gameObject)) { return; }
-            ToTouch();
+            if (!State.IsFalling) { return; }
+            if (gameObject.transform.position.y < collision.transform.position.y) { return; }
+            if (IsPartner(collision.gameObject)) { return; }
+            ToJustTouch();
+            IsGrounded = true;
+            // パートナーがいる場合は PuyoController でアニメーションを同期すべきか判断させる
+            if (!hasPartner) { AnimateTouch(); }
         }
 
-        private bool CanIgnoreAboutAdjoinedPuyo(GameObject gameObj)
+        private bool ShouldToJustTouch(GameObject gameObj)
         {
-            var adjoinedPuyo = gameObj.GetComponent<Puyopuyo.UI.Puyo>();
-            if (adjoinedPuyo == null) { return false; }
-            return adjoinedPuyo.IsControllable;
+            if (!IsPartner(gameObj)) { return true; }
+            if (IsVerticalWithPartner() && gameObj.GetComponent<Puyo>().IsGrounded) { return true; }
+            return false;
         }
 
-        public void ToTouch()
+        private bool IsPartner(GameObject gameObj)
         {
-            State.ToTouch();
+            return ReferenceEquals(partner, gameObj);
+        }
+
+        public bool IsVerticalWithPartner()
+        {
+            return gameObject.transform.position.x == partner.transform.position.x;
+        }
+
+        public void ToJustTouch()
+        {
+            if (State.IsJustTouch) { return; }
+            State.ToJustTouch();
+        }
+
+        public void AnimateTouch()
+        {
+            StartCoroutine(TouchAnimation());
+        }
+
+        public void TryToKeepTouching()
+        {
             puyoBodyClock.NotifyBeginToTouch();
-        }
-
-
-        public void Left()
-        {
-            transform.Translate(-1, 0, 0);
-        }
-
-        public void Right()
-        {
-            transform.Translate(1, 0, 0);
-        }
-
-        public void Down()
-        {
-            transform.Translate(0, MOVE_FALL_AMOUNT, 0);
+            State.ToTouching();
         }
     }
 }

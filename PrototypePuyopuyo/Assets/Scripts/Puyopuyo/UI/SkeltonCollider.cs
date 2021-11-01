@@ -15,7 +15,6 @@ namespace Puyopuyo.UI {
         void OnTriggerExit(Collider collider)
         {
             if (collider.gameObject.tag == SKELTON_TAG) { return; }
-            Debug.Log("kitenai");
             HasCollision = false;
         }
     }

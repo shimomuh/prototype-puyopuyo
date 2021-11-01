@@ -26,7 +26,7 @@ namespace Puyopuyo.UI {
 
         public void OnClick()
         {
-            Puyopuyo.Application.PuyopuyoGenerator.Instance.Generate(field.transform, INITIAL_POSITION);
+            Puyopuyo.Application.PuyopuyoGenerator.Instance.Generate(field.transform, new Vector3(0, 3, 0));
         }
     }
 }

@@ -15,6 +15,7 @@ namespace Puyopuyo.Application {
             skeltonObj.name = skeltonObj.name.Replace("(Clone)","");
             skeltonObj.transform.SetParent(parentTransform);
             skeltonObj.transform.position = position;
+            skeltonObj.transform.localScale = new Vector3(0.99f, 0.99f, 0.99f);
             return skeltonObj.GetComponent<Puyopuyo.UI.SkeltonCollider>();
         }
     }
