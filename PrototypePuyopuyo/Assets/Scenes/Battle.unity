@@ -767,7 +767,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   button: {fileID: 139608568}
   field: {fileID: 520259596}
-  inputField: {fileID: 0}
+  inputField: {fileID: 2062201240}
 --- !u!1 &963194225
 GameObject:
   m_ObjectHideFlags: 0

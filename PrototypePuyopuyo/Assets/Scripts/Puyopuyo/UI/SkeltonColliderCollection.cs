@@ -12,36 +12,66 @@ namespace Puyopuyo.UI {
     {
         private enum Direction {
             UpperLeft,
-            MiddleLeft,
             LowerLeft,
             LowerRight,
-            MiddleRight,
             UpperRight
         }
         private Dictionary<int, Vector3> OFFSETS = new Dictionary<int, Vector3>()
         {
-            { (int)Direction.UpperLeft, new Vector3(-1, 1, 0) },
-            { (int)Direction.MiddleLeft, new Vector3(-1, 0, 0) },
+            { (int)Direction.UpperLeft, new Vector3(-1, 0, 0) },
             { (int)Direction.LowerLeft, new Vector3(-1, -1, 0) },
             { (int)Direction.LowerRight, new Vector3(1, -1, 0) },
-            { (int)Direction.MiddleRight, new Vector3(1, 0, 0) },
-            { (int)Direction.UpperRight, new Vector3(1, 1, 0) }
+            { (int)Direction.UpperRight, new Vector3(1, 0, 0) }
         };
         private Transform fieldTransform;
         private Vector3 landmarkPosition;
         private Dictionary<int, SkeltonCollider> skeltonColliders = new Dictionary<int, SkeltonCollider>();
 
-        public SkeltonColliderCollection(Transform fieldTransform, Vector3 landmarkPosition)
+        public SkeltonColliderCollection(Transform fieldTransform, Vector3 landmarkPosition, Puyo targetPuyo)
         {
             foreach (var kvp in OFFSETS)
             {
-                skeltonColliders.Add(kvp.Key, Application.SkeltonColliderGenerator.Instance.Generate(fieldTransform, landmarkPosition + kvp.Value));
+                skeltonColliders.Add(kvp.Key, Application.SkeltonColliderGenerator.Instance.Generate(fieldTransform, landmarkPosition + kvp.Value, targetPuyo));
             }
         }
 
         private Direction ToDirection(int key)
         {
             return (Direction)Enum.ToObject(typeof(Direction), key);
+        }
+
+        public bool CanToLeft()
+        {
+            bool hasCollision = false;
+            foreach (var kvp in skeltonColliders)
+            {
+                if (ToDirection(kvp.Key) != Direction.UpperLeft) { continue; }
+                if (kvp.Value.HasCollision) { hasCollision = true; }
+            }
+            return !hasCollision;
+        }
+
+        public bool CanToRight()
+        {
+            bool hasCollision = false;
+            foreach (var kvp in skeltonColliders)
+            {
+                if (ToDirection(kvp.Key) != Direction.UpperRight) { continue; }
+                if (kvp.Value.HasCollision) { hasCollision = true; }
+            }
+            return !hasCollision;
+        }
+
+        // TODO: 現状壁側で下げる,接地直前で下げる動作に対応していない（後者は仕様として無視可能）
+        public bool CanToDown()
+        {
+            bool hasCollision = false;
+            foreach (var kvp in skeltonColliders)
+            {
+                if (ToDirection(kvp.Key) == Direction.UpperLeft || ToDirection(kvp.Key) == Direction.UpperRight) { continue; }
+                if (kvp.Value.HasCollision) { hasCollision = true; }
+            }
+            return !hasCollision;
         }
 
         public void ToLeft()
@@ -72,7 +102,6 @@ namespace Puyopuyo.UI {
         {
             foreach (var kvp in skeltonColliders)
             {
-                UnityEngine.Debug.Log(ToDirection(kvp.Key).ToString());
                 kvp.Value.ToJustTouch();
             }
         }

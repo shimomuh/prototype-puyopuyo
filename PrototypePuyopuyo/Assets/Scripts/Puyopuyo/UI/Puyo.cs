@@ -28,13 +28,15 @@ namespace Puyopuyo.UI {
         public GameObject GameObject => gameObject;
         private GameObject partner;
         private bool hasPartner => partner != null;
-        private Collider collider;
+        private new Collider collider;
+        private new Rigidbody rigidbody;
 
         private void Awake()
         {
             puyoBodyClock = new Domain.PuyoBodyClock();
             State = new Domain.PuyoStateMachine();
             collider = gameObject.GetComponent<Collider>();
+            rigidbody = gameObject.GetComponent<Rigidbody>();
             IsGrounded = false;
         }
 
@@ -144,13 +146,27 @@ namespace Puyopuyo.UI {
 
         protected virtual void OnCollisionEnter(Collision collision)
         {
+            var hitPosition = GetHitPoint(collision);
             if (!State.IsFalling) { return; }
-            if (gameObject.transform.position.y < collision.transform.position.y) { return; }
+            if (gameObject.transform.position.x != hitPosition.x) { return; }
+            if (gameObject.transform.position.y < hitPosition.y) { return; }
             if (IsPartner(collision.gameObject)) { return; }
             ToJustTouch();
             IsGrounded = true;
+            rigidbody.isKinematic = true; // 反発を防ぐ処理
             // パートナーがいる場合は PuyoController でアニメーションを同期すべきか判断させる
             if (!hasPartner) { DoTouchAnimation(); }
+        }
+
+        private Vector3 GetHitPoint(Collision collision)
+        {
+            if (collision.contacts.Length != 1) { throw new Exception("1点以上で交わっています"); }
+            Vector3 hitPos = new Vector3();
+            foreach (ContactPoint point in collision.contacts)
+            {
+                hitPos = point.point;
+            }
+            return hitPos;
         }
 
         private bool IsPartner(GameObject gameObj)
