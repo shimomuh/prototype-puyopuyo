@@ -1,15 +1,13 @@
 using com.amabie.SingletonKit;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
 
 namespace Puyopuyo.Application {
+    /// <summary>
+    /// パートナーやスケルトンとの同期はこの子が行う
+    /// </summary>
     public class PuyoController : SingletonMonoBehaviour<PuyoController>
     {
         Puyopuyo.UI.Puyo controller;
         Puyopuyo.UI.Puyo follower;
-        private const string WALL_TAG = "Wall";
-        private const string SKELTON_TAG = "Skelton";
 
         public void Observe(Puyopuyo.UI.Puyo controller, Puyopuyo.UI.Puyo follower)
         {
@@ -62,11 +60,11 @@ namespace Puyopuyo.Application {
             }
             if (controller.State.IsJustTouch && follower.State.IsJustTouch) {
                 if (controller.IsVerticalWithPartner()) {
-                    controller.AnimateTouch();
-                    follower.AnimateTouch();
+                    controller.DoTouchAnimation();
+                    follower.DoTouchAnimation();
                 } else {
-                    if (controller.IsGrounded) { controller.AnimateTouch(); }
-                    if (follower.IsGrounded) { follower.AnimateTouch(); }
+                    if (controller.IsGrounded) { controller.DoTouchAnimation(); }
+                    if (follower.IsGrounded) { follower.TouchAnimation(); }
                 }
                 controller.TryToKeepTouching();
                 follower.TryToKeepTouching();

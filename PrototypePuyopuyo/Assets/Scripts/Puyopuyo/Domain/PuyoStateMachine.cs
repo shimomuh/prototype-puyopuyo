@@ -14,7 +14,7 @@ namespace Puyopuyo.Domain {
         void ToStaying();
     }
     public class PuyoStateMachine : IPuyoStateMachine {
-        private enum State {
+        public enum State {
             Falling,
             JustTouch,
             Touching,
@@ -68,6 +68,11 @@ namespace Puyopuyo.Domain {
                 throw new Exception("「ちょうど留まっている状態」でないと「留まっている状態」にいきなり遷移はできません！");
             }
             currentState = State.Staying;
+        }
+
+        public override string ToString()
+        {
+            return currentState.ToString();
         }
     }
 }

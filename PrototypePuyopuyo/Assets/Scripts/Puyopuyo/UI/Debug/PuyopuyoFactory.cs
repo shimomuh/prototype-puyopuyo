@@ -1,9 +1,8 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-namespace Puyopuyo.UI {
+namespace Puyopuyo.UI.Debug {
     public class PuyopuyoFactory : MonoBehaviour
     {
         [SerializeField] private GameObject button;
