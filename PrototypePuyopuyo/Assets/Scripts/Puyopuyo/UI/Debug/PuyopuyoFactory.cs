@@ -1,13 +1,15 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 namespace Puyopuyo.UI.Debug {
     public class PuyopuyoFactory : MonoBehaviour
     {
+        private float INITIAL_Y_POSITION = 12f;
         [SerializeField] private GameObject button;
-        private Vector3 INITIAL_POSITION = new Vector3(0f, 12f, 0f);
         [SerializeField] private GameObject field;
+        [SerializeField] private InputField inputField;
 
         private void Awake() {
             AddEventTrigger(button);
@@ -25,7 +27,12 @@ namespace Puyopuyo.UI.Debug {
 
         public void OnClick()
         {
-            Puyopuyo.Application.PuyopuyoGenerator.Instance.Generate(field.transform, new Vector3(0, 3, 0));
+            float y = INITIAL_Y_POSITION;
+            if (inputField.text != "")
+            {
+                float.TryParse(inputField.text, out y);
+            }
+            Application.PuyopuyoGenerator.Instance.Generate(field.transform, new Vector3(0, y, 0));
         }
     }
 }

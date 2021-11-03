@@ -56,7 +56,7 @@ namespace Puyopuyo.Domain {
 
         public void ToJustStay()
         {
-            if (IsTouching) {
+            if (!IsTouching) {
                 throw new Exception("「触れている状態」でないと「ちょうど留まっている状態」にいきなり遷移はできません！");
             }
             currentState = State.JustStay;
@@ -64,7 +64,7 @@ namespace Puyopuyo.Domain {
 
         public void ToStaying()
         {
-            if (IsJustStay) {
+            if (!IsJustStay) {
                 throw new Exception("「ちょうど留まっている状態」でないと「留まっている状態」にいきなり遷移はできません！");
             }
             currentState = State.Staying;
