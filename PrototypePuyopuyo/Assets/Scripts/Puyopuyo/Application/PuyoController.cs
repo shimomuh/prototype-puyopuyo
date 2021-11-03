@@ -15,6 +15,7 @@ namespace Puyopuyo.Application {
         {
             this.controller = controller;
             this.follower = follower;
+            // TODO: 回転するときに controller 用のと follower 用に分けないといけない
             this.skeltonColliderCollection = skeltonColliderCollection;
             controller.RecognizePartner(follower.GameObject);
             follower.RecognizePartner(controller.GameObject);
@@ -22,6 +23,7 @@ namespace Puyopuyo.Application {
         
         public void Update()
         {
+            if (controller == null || follower == null) { return; }
             CheckInputEvent();
             PropergateTouchEvent();
             PropergateStayEvent();
@@ -32,6 +34,7 @@ namespace Puyopuyo.Application {
             // Input.GetAxis は後で考える
             if (Input.GetKeyDown("left")) {
                 if (!CanMove()) { return; }
+                if (!skeltonColliderCollection.CanToLeft()) { return; }
                 controller.ToLeft();
                 follower.ToLeft();
                 skeltonColliderCollection.ToLeft();
@@ -39,6 +42,7 @@ namespace Puyopuyo.Application {
 
             if (Input.GetKeyDown("right")) {
                 if (!CanMove()) { return; }
+                if (!skeltonColliderCollection.CanToRight()) { return; }
                 controller.ToRight();
                 follower.ToRight();
                 skeltonColliderCollection.ToRight();
@@ -46,6 +50,7 @@ namespace Puyopuyo.Application {
 
             if (Input.GetKeyDown("down")) {
                 if (!CanMove()) { return; }
+                //if (!skeltonColliderCollection.CanToDown()) { return; }
                 controller.ToDown();
                 follower.ToDown();
                 skeltonColliderCollection.ToDown();
@@ -66,7 +71,6 @@ namespace Puyopuyo.Application {
 
         private void PropergateTouchEvent()
         {
-            if (controller == null || follower == null) { return; }
             // 同期
             if (controller.State.IsJustTouch && follower.State.IsFalling) {
                 follower.ToJustTouch();
@@ -92,7 +96,6 @@ namespace Puyopuyo.Application {
 
         private void PropergateStayEvent()
         {
-            if (controller == null || follower == null) { return; }
             if (controller.State.IsJustStay && follower.State.IsTouching) {
                 follower.ToJustStay();
                 skeltonColliderCollection.ToJustStay();
