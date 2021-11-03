@@ -1,8 +1,6 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using System;
-using System.Linq;
 
 namespace Puyopuyo.UI {
     public interface IPuyo {
@@ -13,7 +11,7 @@ namespace Puyopuyo.UI {
         void ToJustTouch();
         void TryToKeepTouching();
         bool IsVerticalWithPartner();
-        void AnimateTouch();
+        void DoTouchAnimation();
     }
     public class Puyo : MonoBehaviour, IPuyo
     {
@@ -139,14 +137,7 @@ namespace Puyopuyo.UI {
             ToJustTouch();
             IsGrounded = true;
             // パートナーがいる場合は PuyoController でアニメーションを同期すべきか判断させる
-            if (!hasPartner) { AnimateTouch(); }
-        }
-
-        private bool ShouldToJustTouch(GameObject gameObj)
-        {
-            if (!IsPartner(gameObj)) { return true; }
-            if (IsVerticalWithPartner() && gameObj.GetComponent<Puyo>().IsGrounded) { return true; }
-            return false;
+            if (!hasPartner) { DoTouchAnimation(); }
         }
 
         private bool IsPartner(GameObject gameObj)
@@ -165,7 +156,7 @@ namespace Puyopuyo.UI {
             State.ToJustTouch();
         }
 
-        public void AnimateTouch()
+        public void DoTouchAnimation()
         {
             StartCoroutine(TouchAnimation());
         }

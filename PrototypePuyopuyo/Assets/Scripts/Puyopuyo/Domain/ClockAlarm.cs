@@ -1,5 +1,3 @@
-using UnityEngine;
-
 namespace Puyopuyo.Domain {
     public interface IClockAlarm {
         bool IsRing { get; }

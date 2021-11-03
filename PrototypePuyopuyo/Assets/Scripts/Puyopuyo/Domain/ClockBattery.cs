@@ -1,5 +1,3 @@
-using UnityEngine;
-
 namespace Puyopuyo.Domain {
     public interface IClockBattery {
         bool CanProvideEnergy { get; }

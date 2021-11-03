@@ -1,8 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using System;
-
 namespace Puyopuyo.Domain {
     public interface IPuyoBodyClock {
         bool ShouldFallAction { get; }
