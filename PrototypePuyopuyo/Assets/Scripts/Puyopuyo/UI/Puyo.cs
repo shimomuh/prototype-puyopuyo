@@ -4,35 +4,41 @@ using System;
 
 namespace Puyopuyo.UI {
     public interface IPuyo {
-        Puyopuyo.Domain.IPuyoStateMachine State { get; }
+        Domain.IPuyoStateMachine State { get; }
         bool IsGrounded { get; }
+        GameObject GameObject { get; }
+        void RecognizePartner(GameObject gameObj);
         void ToFall();
         void ToJustStay();
+        void ToStay();
         void ToJustTouch();
         void TryToKeepTouching();
         bool IsVerticalWithPartner();
         void DoTouchAnimation();
+        void ToLeft();
+        void ToRight();
+        void ToDown();
     }
     public class Puyo : MonoBehaviour, IPuyo
     {
         private float MOVE_FALL_AMOUNT = -0.5f;
-        private Puyopuyo.Domain.IPuyoBodyClock puyoBodyClock;
-        public Puyopuyo.Domain.IPuyoStateMachine State { get; private set; }
+        private Domain.IPuyoBodyClock puyoBodyClock;
+        public Domain.IPuyoStateMachine State { get; private set; }
         public bool IsGrounded { get; private set; }
         public GameObject GameObject => gameObject;
-        public GameObject partner;
+        private GameObject partner;
         private bool hasPartner => partner != null;
         private Collider collider;
 
         private void Awake()
         {
-            puyoBodyClock = new Puyopuyo.Domain.PuyoBodyClock();
-            State = new Puyopuyo.Domain.PuyoStateMachine();
+            puyoBodyClock = new Domain.PuyoBodyClock();
+            State = new Domain.PuyoStateMachine();
             collider = gameObject.GetComponent<Collider>();
             IsGrounded = false;
         }
 
-        public void KnowPartner(GameObject partner)
+        public void RecognizePartner(GameObject partner)
         {
             if (partner.GetComponent<Puyo>() == null) { throw new Exception("ぷよはぷよしかパートナーに選べません"); }
             this.partner = partner;
@@ -52,8 +58,8 @@ namespace Puyopuyo.UI {
         {
             //FreeFall();
             UpdateAboutFall();
-            //UpdateAboutTouch();
-            //UpdateAboutStay();
+            UpdateAboutTouch();
+            UpdateAboutStay();
         }
 
         /// <summary>
@@ -61,7 +67,9 @@ namespace Puyopuyo.UI {
         /// </summary>
         private void FreeFall()
         {
-            if (!IsGrounded && (State.IsJustTouch || State.IsTouching)) { ToFall(); }
+            if (IsGrounded) { return; }
+            if (!State.IsJustStay) { return; }
+            ToFall();
         }
 
         private void UpdateAboutFall()
@@ -90,6 +98,11 @@ namespace Puyopuyo.UI {
         {
             State.ToJustStay();
             puyoBodyClock.NotifyFinishStayAction();
+        }
+
+        public void ToStay()
+        {
+            State.ToStaying();
         }
 
         private void AutoDown()
@@ -129,7 +142,7 @@ namespace Puyopuyo.UI {
             yield return null;
         }
 
-        void OnCollisionEnter(Collision collision)
+        protected virtual void OnCollisionEnter(Collision collision)
         {
             if (!State.IsFalling) { return; }
             if (gameObject.transform.position.y < collision.transform.position.y) { return; }
@@ -165,6 +178,26 @@ namespace Puyopuyo.UI {
         {
             puyoBodyClock.NotifyBeginToTouch();
             State.ToTouching();
+        }
+
+        public void ToLeft()
+        {
+            transform.Translate(-1, 0, 0);
+        }
+
+        public void ToRight()
+        {
+            transform.Translate(1, 0, 0);
+        }
+
+        public void ToDown()
+        {
+            transform.Translate(0, MOVE_FALL_AMOUNT, 0);
+        }
+
+        public void Destroy()
+        {
+            Destroy(gameObject);
         }
     }
 }

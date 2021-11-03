@@ -16,9 +16,24 @@ namespace Puyopuyo.UI.Debug {
 
         private void Update() {
             if (field.transform.childCount == 0) { return; }
+            UpdateDeletedObject();
             AddPuyoHUDDict();
             UpdateHUDPosition();
             UpdateHUDText();
+        }
+
+        private void UpdateDeletedObject()
+        {
+            var deleteKeys = new List<int>();
+            foreach (var kvp in puyoHUDDict)
+            {
+                if (kvp.Value.Puyo == null) deleteKeys.Add(kvp.Key);
+            }
+            foreach (var key in deleteKeys)
+            {
+                Destroy(puyoHUDDict[key].HUD.gameObject);
+                puyoHUDDict.Remove(key);
+            }
         }
 
         private void AddPuyoHUDDict()
@@ -26,6 +41,7 @@ namespace Puyopuyo.UI.Debug {
             foreach (Transform child in field.transform)
             {
                 if (puyoHUDDict.ContainsKey(child.gameObject.GetInstanceID())) { continue; }
+                if (child.gameObject.GetComponent<Puyo>() == null) { continue; }
                 var textObj = new GameObject("PuyoHUD");
                 var text = textObj.AddComponent<Text>();
                 textObj.transform.SetParent(gameObject.transform);

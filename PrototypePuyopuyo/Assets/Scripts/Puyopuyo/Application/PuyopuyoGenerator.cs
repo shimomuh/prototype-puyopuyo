@@ -4,13 +4,12 @@ using UnityEngine;
 namespace Puyopuyo.Application {
     public class PuyopuyoGenerator : SingletonMonoBehaviour<PuyopuyoGenerator>
     {
-
-        public void Generate(Transform parentTransform, Vector3 initialPosition)
+        public void Generate(Transform fieldTransform, Vector3 initialPosition)
         {
-            var controller = Puyopuyo.Application.PuyoGenerator.Instance.Generate(parentTransform, initialPosition);
-            var follower = Puyopuyo.Application.PuyoGenerator.Instance.Generate(parentTransform, initialPosition + new Vector3(0, 1, 0));
-            //Puyopuyo.Application.SkeltonColliderCollectionGenerator.Instance.Generate(parentTransform, initialPosition);
-            Puyopuyo.Application.PuyoController.Instance.Observe(controller, follower);
+            var controller = PuyoGenerator.Instance.Generate(fieldTransform, initialPosition);
+            var follower = PuyoGenerator.Instance.Generate(fieldTransform, initialPosition + new Vector3(0, 1, 0));
+            var skeltonCollection = SkeltonColliderCollectionGenerator.Instance.Generate(fieldTransform, initialPosition);
+            PuyoController.Instance.Observe(controller, follower, skeltonCollection);
         }
     }
 }
