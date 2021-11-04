@@ -7,11 +7,13 @@ namespace Puyopuyo.Domain {
         bool IsTouching { get; }
         bool IsJustStay { get; }
         bool IsStaying { get; }
+        bool IsCancelTouching { get; }
         void ToFalling();
         void ToJustTouch();
         void ToTouching();
         void ToJustStay();
         void ToStaying();
+        void ToCancelTouching();
     }
     public class PuyoStateMachine : IPuyoStateMachine {
         public enum State {
@@ -19,7 +21,8 @@ namespace Puyopuyo.Domain {
             JustTouch,
             Touching,
             JustStay,
-            Staying
+            Staying,
+            CancelTouching
         }
         private State currentState;
         public bool IsFalling => currentState == State.Falling;
@@ -27,6 +30,7 @@ namespace Puyopuyo.Domain {
         public bool IsTouching => currentState == State.Touching;
         public bool IsJustStay => currentState == State.JustStay;
         public bool IsStaying => currentState == State.Staying;
+        public bool IsCancelTouching => currentState == State.CancelTouching;
 
         public PuyoStateMachine ()
         {
@@ -68,6 +72,14 @@ namespace Puyopuyo.Domain {
                 throw new Exception("「ちょうど留まっている状態」でないと「留まっている状態」にいきなり遷移はできません！");
             }
             currentState = State.Staying;
+        }
+
+        public void ToCancelTouching()
+        {
+            if (!IsTouching) {
+                throw new Exception("「触れている状態」でないと「触れているをキャンセルする状態」にいきなり遷移はできません！");
+            }
+            currentState = State.CancelTouching;
         }
 
         public override string ToString()
