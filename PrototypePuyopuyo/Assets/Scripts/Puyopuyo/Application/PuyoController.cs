@@ -26,6 +26,7 @@ namespace Puyopuyo.Application {
             if (controller == null || follower == null) { return; }
             CheckInputEvent();
             PropergateTouchEvent();
+            PropergateCancelTouchEvent();
             PropergateStayEvent();
         }
 
@@ -33,7 +34,7 @@ namespace Puyopuyo.Application {
         {
             // Input.GetAxis は後で考える
             if (Input.GetKeyDown("left")) {
-                if (!CanMove()) { return; }
+                if (!CanSlide()) { return; }
                 if (!skeltonColliderCollection.CanToLeft()) { return; }
                 controller.ToLeft();
                 follower.ToLeft();
@@ -41,7 +42,7 @@ namespace Puyopuyo.Application {
             }
 
             if (Input.GetKeyDown("right")) {
-                if (!CanMove()) { return; }
+                if (!CanSlide()) { return; }
                 if (!skeltonColliderCollection.CanToRight()) { return; }
                 controller.ToRight();
                 follower.ToRight();
@@ -49,7 +50,7 @@ namespace Puyopuyo.Application {
             }
 
             if (Input.GetKeyDown("down")) {
-                if (!CanMove()) { return; }
+                if (!CanDown()) { return; }
                 //if (!skeltonColliderCollection.CanToDown()) { return; }
                 controller.ToDown();
                 follower.ToDown();
@@ -57,10 +58,15 @@ namespace Puyopuyo.Application {
             }
         }
 
-        private bool CanMove()
+        private bool CanSlide()
         {
             if (!CanMoveAboutPuyoState()) { return false; }
             return true;
+        }
+
+        private bool CanDown()
+        {
+            return controller.State.IsFalling && follower.State.IsFalling;
         }
 
         private bool CanMoveAboutPuyoState()
@@ -91,6 +97,23 @@ namespace Puyopuyo.Application {
                 controller.TryToKeepTouching();
                 follower.TryToKeepTouching();
                 skeltonColliderCollection.TryToKeepTouching();
+            }
+        }
+
+        private void PropergateCancelTouchEvent()
+        {
+            if (controller.State.IsTouching && follower.State.IsCancelTouching) {
+                controller.ToCancelTouching();
+                skeltonColliderCollection.ToCancelTouching();
+            }
+            if (controller.State.IsCancelTouching && follower.State.IsTouching) {
+                follower.ToCancelTouching();
+                skeltonColliderCollection.ToCancelTouching();
+            }
+            if (controller.State.IsCancelTouching && follower.State.IsCancelTouching) {
+                controller.ToFall();
+                follower.ToFall();
+                skeltonColliderCollection.ToFall();
             }
         }
 

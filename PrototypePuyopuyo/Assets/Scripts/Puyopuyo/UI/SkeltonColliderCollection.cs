@@ -98,11 +98,27 @@ namespace Puyopuyo.UI {
             }
         }
 
+        public void ToFall()
+        {
+            foreach (var kvp in skeltonColliders)
+            {
+                kvp.Value.ToFall();
+            }
+        }
+
         public void ToJustTouch()
         {
             foreach (var kvp in skeltonColliders)
             {
                 kvp.Value.ToJustTouch();
+            }
+        }
+
+        public void ToCancelTouching()
+        {
+            foreach (var kvp in skeltonColliders)
+            {
+                kvp.Value.ToCancelTouching();
             }
         }
 

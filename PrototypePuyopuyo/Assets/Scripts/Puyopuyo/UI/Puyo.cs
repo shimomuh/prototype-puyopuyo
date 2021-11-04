@@ -12,6 +12,7 @@ namespace Puyopuyo.UI {
         void ToJustStay();
         void ToStay();
         void ToJustTouch();
+        void ToCancelTouching();
         void TryToKeepTouching();
         bool IsVerticalWithPartner();
         void DoTouchAnimation();
@@ -48,30 +49,14 @@ namespace Puyopuyo.UI {
 
         private void Start()
         {
-            puyoBodyClock.NotifyBeginToFall();
-        }
-
-        public void ToFall()
-        {
-            State.ToFalling();
+            ToFall();
         }
 
         private void Update()
         {
-            //FreeFall();
             UpdateAboutFall();
             UpdateAboutTouch();
             UpdateAboutStay();
-        }
-
-        /// <summary>
-        /// 基本ぷよは落ちようとする
-        /// </summary>
-        private void FreeFall()
-        {
-            if (IsGrounded) { return; }
-            if (!State.IsJustStay) { return; }
-            ToFall();
         }
 
         private void UpdateAboutFall()
@@ -96,6 +81,12 @@ namespace Puyopuyo.UI {
             ToJustStay();
         }
 
+        public void ToFall()
+        {
+            State.ToFalling();
+            puyoBodyClock.NotifyBeginToFall();
+        }
+
         public void ToJustStay()
         {
             State.ToJustStay();
@@ -105,6 +96,7 @@ namespace Puyopuyo.UI {
         public void ToStay()
         {
             State.ToStaying();
+            IsGrounded = true;
         }
 
         private void AutoDown()
@@ -158,9 +150,21 @@ namespace Puyopuyo.UI {
             if (!hasPartner) { DoTouchAnimation(); }
         }
 
+        protected virtual void OnCollisionExit(Collision collision)
+        {
+            var hitPosition = GetHitPoint(collision);
+            if (!State.IsTouching) { return; }
+            // collision.contacts の point が (0,0,0) になってしまうので床滑りしたときの対策
+            if (gameObject.transform.position.y == collision.transform.position.y) { return; }
+            if (IsPartner(collision.gameObject)) { return; } // そんなことないと思うけど
+            ToCancelTouching();
+            IsGrounded = false;
+            rigidbody.isKinematic = false;
+        }
+
         private Vector3 GetHitPoint(Collision collision)
         {
-            if (collision.contacts.Length != 1) { throw new Exception("1点以上で交わっています"); }
+            if (collision.contacts.Length > 1) { throw new Exception($"{collision.gameObject.name} が2点以上で交わっています"); }
             Vector3 hitPos = new Vector3();
             foreach (ContactPoint point in collision.contacts)
             {
@@ -183,6 +187,13 @@ namespace Puyopuyo.UI {
         {
             if (State.IsJustTouch) { return; }
             State.ToJustTouch();
+        }
+
+        public void ToCancelTouching()
+        {
+            if (State.IsCancelTouching) { return; }
+            puyoBodyClock.NotifyFinishStayAction();
+            State.ToCancelTouching();
         }
 
         public void DoTouchAnimation()
