@@ -11,6 +11,10 @@ namespace Puyopuyo.Application {
         UI.IPuyo follower;
         UI.SkeltonColliderCollection controllerSkeltonColliderCollection;
         UI.SkeltonColliderCollection followerSkeltonColliderCollection;
+        private bool isRotating;
+        private Domain.PuyoRotation.Position followerNextPosition;
+        private float rotateSpeed = 2.0f;
+        private float rotateProgress = 0.0f;
 
         public void Observe(UI.IPuyo controller, UI.IPuyo follower, UI.SkeltonColliderCollection controllerSkeltonColliderCollection, UI.SkeltonColliderCollection followerSkeltonColliderCollection)
         {
@@ -26,6 +30,7 @@ namespace Puyopuyo.Application {
         {
             if (controller == null || follower == null) { return; }
             CheckInputEvent();
+            UpdateRotate();
             PropergateTouchEvent();
             PropergateCancelTouchEvent();
             PropergateStayEvent();
@@ -34,7 +39,7 @@ namespace Puyopuyo.Application {
         private void CheckInputEvent()
         {
             // Input.GetAxis は後で考える
-            if (Input.GetKeyDown("left")) {
+            if (Input.GetKeyDown(KeyCode.LeftArrow)) {
                 if (!CanSlide()) { return; }
                 if (!controllerSkeltonColliderCollection.CanToLeft()) { return; }
                 if (!followerSkeltonColliderCollection.CanToLeft()) { return; }
@@ -44,7 +49,7 @@ namespace Puyopuyo.Application {
                 followerSkeltonColliderCollection.ToLeft();
             }
 
-            if (Input.GetKeyDown("right")) {
+            if (Input.GetKeyDown(KeyCode.RightArrow)) {
                 if (!CanSlide()) { return; }
                 if (!controllerSkeltonColliderCollection.CanToRight()) { return; }
                 if (!followerSkeltonColliderCollection.CanToRight()) { return; }
@@ -54,13 +59,21 @@ namespace Puyopuyo.Application {
                 followerSkeltonColliderCollection.ToRight();
             }
 
-            if (Input.GetKeyDown("down")) {
+            if (Input.GetKeyDown(KeyCode.DownArrow)) {
                 if (!CanDown()) { return; }
                 //if (!controllerSkeltonColliderCollection.CanToDown()) { return; }
                 controller.ToDown();
                 follower.ToDown();
                 controllerSkeltonColliderCollection.ToDown();
                 followerSkeltonColliderCollection.ToDown();
+            }
+            // 左回り
+            if (Input.GetKeyDown(KeyCode.Space)) {
+                RotateTo(Domain.PuyoRotation.ROTATE_LEFT);
+            }
+            // 右回り
+            if (Input.GetKeyDown(KeyCode.Return)) {
+                RotateTo(Domain.PuyoRotation.ROTATE_RIGHT);
             }
         }
 
@@ -79,6 +92,29 @@ namespace Puyopuyo.Application {
         {
             // どちらか一方だけをみればいいはず
             return controller.State.IsFalling || controller.State.IsTouching;
+        }
+
+        private void RotateTo(Domain.PuyoRotation.Direction rotateDirection)
+        {
+            if (isRotating) { return; }
+            var followerPosition = Domain.PuyoRotation.GetCurrentPosition(controller.GameObject.transform.position, follower.GameObject.transform.position);
+            followerNextPosition = Domain.PuyoRotation.GetNextPosition(rotateDirection, followerPosition);
+            isRotating = true;
+        }
+
+        private void UpdateRotate()
+        {
+            if (!isRotating) { return; }
+            var startPos = follower.GameObject.transform.position;
+            var endPos = Domain.PuyoRotation.GetNextPosition(controller.GameObject.transform.position, followerNextPosition);
+            rotateProgress += rotateSpeed * Time.deltaTime;
+            if (rotateProgress > 1) {
+                rotateProgress = 1f;
+                isRotating = false;
+                followerNextPosition = null;
+            }
+            follower.GameObject.transform.position = Vector3.Lerp(startPos, endPos, rotateProgress);
+            if (rotateProgress >= 1f) { rotateProgress = 0f; }
         }
 
         private void PropergateTouchEvent()

@@ -12,6 +12,7 @@ namespace Puyopuyo.UI.Debug {
         [SerializeField] private InputField inputField;
 
         private void Awake() {
+            OnClick();
             AddEventTrigger(button);
         }
 

@@ -7,6 +7,7 @@ namespace Puyopuyo.UI {
         void ToLeft();
         void ToRight();
         void ToDown();
+        void ForceMove(Vector3 position);
     }
     public class SkeltonColliderCollection : ISkeltonColliderCollection
     {
@@ -95,6 +96,14 @@ namespace Puyopuyo.UI {
             foreach (var kvp in skeltonColliders)
             {
                 kvp.Value.ToDown();
+            }
+        }
+
+        public void ForceMove(Vector3 position)
+        {
+            foreach (var kvp in skeltonColliders)
+            {
+                kvp.Value.ForceMove(position);
             }
         }
 

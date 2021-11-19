@@ -19,6 +19,7 @@ namespace Puyopuyo.UI {
         void ToLeft();
         void ToRight();
         void ToDown();
+        void ForceMove(Vector3 position);
     }
     public class Puyo : MonoBehaviour, IPuyo
     {
@@ -226,6 +227,11 @@ namespace Puyopuyo.UI {
         public void Destroy()
         {
             Destroy(gameObject);
+        }
+
+        public void ForceMove(Vector3 position)
+        {
+            transform.position = position;
         }
     }
 }
