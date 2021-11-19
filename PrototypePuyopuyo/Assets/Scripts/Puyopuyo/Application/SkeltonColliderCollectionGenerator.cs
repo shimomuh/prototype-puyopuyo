@@ -1,5 +1,4 @@
 using com.amabie.SingletonKit;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace Puyopuyo.Application {

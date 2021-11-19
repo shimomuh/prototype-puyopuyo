@@ -8,10 +8,9 @@ namespace Puyopuyo.Application {
         {
             var controller = PuyoGenerator.Instance.Generate(fieldTransform, initialPosition);
             var follower = PuyoGenerator.Instance.Generate(fieldTransform, initialPosition + new Vector3(0, 1, 0));
-            // TODO: あとで follower もやる
-            // TODO: あとたぶん follower の検知も回転のときに必要になる
-            var skeltonCollection = SkeltonColliderCollectionGenerator.Instance.Generate(fieldTransform, initialPosition, controller);
-            PuyoController.Instance.Observe(controller, follower, skeltonCollection);
+            var controllerSkeltonColliderCollection = SkeltonColliderCollectionGenerator.Instance.Generate(fieldTransform, initialPosition, controller);
+            var folloerSkeltonColliderCollection = SkeltonColliderCollectionGenerator.Instance.Generate(fieldTransform, initialPosition + new Vector3(0, 1, 0), follower);
+            PuyoController.Instance.Observe(controller, follower, controllerSkeltonColliderCollection, folloerSkeltonColliderCollection);
         }
     }
 }

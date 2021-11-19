@@ -9,20 +9,20 @@ namespace Puyopuyo.Domain {
         void NotifyFinishFallAction();
         void NotifyFinishStayAction();
     }
-    public class PuyoBodyClock : Puyopuyo.Domain.IPuyoBodyClock
+    public class PuyoBodyClock : IPuyoBodyClock
     {
         private float MOVE_FALL_WAITING_SECONDS = 1f;
         private float MOVE_TOUCH_WAITING_SECONDS = 1f;
-        private Puyopuyo.Domain.IClock fallClock;
-        private Puyopuyo.Domain.IClock touchClock;
+        private IClock fallClock;
+        private IClock touchClock;
 
         public bool ShouldFallAction => fallClock.Alarm.IsRing;
         public bool ShouldStayAction => touchClock.Alarm.IsRing;
 
         public PuyoBodyClock()
         {
-            fallClock = new Puyopuyo.Domain.Clock(MOVE_FALL_WAITING_SECONDS);
-            touchClock = new Puyopuyo.Domain.Clock(MOVE_TOUCH_WAITING_SECONDS);
+            fallClock = new Clock(MOVE_FALL_WAITING_SECONDS);
+            touchClock = new Clock(MOVE_TOUCH_WAITING_SECONDS);
         }
 
         public void UpdateAboutFall()

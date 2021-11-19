@@ -97,6 +97,7 @@ namespace Puyopuyo.UI {
         {
             State.ToStaying();
             IsGrounded = true;
+            rigidbody.isKinematic = false;
         }
 
         private void AutoDown()
