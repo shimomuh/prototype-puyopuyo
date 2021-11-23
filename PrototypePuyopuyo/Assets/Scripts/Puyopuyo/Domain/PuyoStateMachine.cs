@@ -68,8 +68,9 @@ namespace Puyopuyo.Domain {
 
         public void ToStaying()
         {
-            if (!IsJustStay) {
-                throw new Exception("「ちょうど留まっている状態」でないと「留まっている状態」にいきなり遷移はできません！");
+            // IsFalling は FreeFall 時
+            if (!(IsJustStay || IsFalling)) {
+                throw new Exception("「ちょうど留まっている/落ちている状態」でないと「留まっている状態」にいきなり遷移はできません！");
             }
             currentState = State.Staying;
         }

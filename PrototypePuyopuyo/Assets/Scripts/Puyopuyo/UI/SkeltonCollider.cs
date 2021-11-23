@@ -4,16 +4,16 @@ namespace Puyopuyo.UI {
     public class SkeltonCollider : Puyo
     {
         public bool HasCollision { get; private set; }
-        private GameObject targetPuyo;
+        private IPuyo targetPuyo;
 
-        public void RecognizeTarget(Puyo targetPuyo)
+        public void RecognizeTarget(IPuyo targetPuyo)
         {
-            this.targetPuyo = targetPuyo.gameObject;
+            this.targetPuyo = targetPuyo;
         }
 
         private bool IsTarget(GameObject gameObj)
         {
-            return ReferenceEquals(targetPuyo, gameObj);
+            return ReferenceEquals(targetPuyo.GameObject, gameObj);
         }
 
         private bool IsSkelton(GameObject gameObject)

@@ -7,23 +7,20 @@ namespace Puyopuyo.Application {
     /// </summary>
     public class PuyoController : SingletonMonoBehaviour<PuyoController>
     {
-        UI.IPuyo controller;
-        UI.IPuyo follower;
-        UI.SkeltonColliderCollection controllerSkeltonColliderCollection;
-        UI.SkeltonColliderCollection followerSkeltonColliderCollection;
+        UI.IPuyoWithSkeltonColliderCollection controller;
+        UI.IPuyoWithSkeltonColliderCollection follower;
         private bool isRotating;
+        private Domain.PuyoRotation.Position followerOriginalPosition;
         private Domain.PuyoRotation.Position followerNextPosition;
-        private float rotateSpeed = 2.0f;
+        private float rotateSpeed = 10.0f;
         private float rotateProgress = 0.0f;
 
-        public void Observe(UI.IPuyo controller, UI.IPuyo follower, UI.SkeltonColliderCollection controllerSkeltonColliderCollection, UI.SkeltonColliderCollection followerSkeltonColliderCollection)
+        public void Observe(UI.IPuyoWithSkeltonColliderCollection controller, UI.IPuyoWithSkeltonColliderCollection follower)
         {
             this.controller = controller;
             this.follower = follower;
-            this.controllerSkeltonColliderCollection = controllerSkeltonColliderCollection;
-            this.followerSkeltonColliderCollection = followerSkeltonColliderCollection;
-            controller.RecognizePartner(follower.GameObject);
-            follower.RecognizePartner(controller.GameObject);
+            controller.RecognizePartner(follower);
+            follower.RecognizePartner(controller);
         }
         
         public void Update()
@@ -41,31 +38,24 @@ namespace Puyopuyo.Application {
             // Input.GetAxis は後で考える
             if (Input.GetKeyDown(KeyCode.LeftArrow)) {
                 if (!CanSlide()) { return; }
-                if (!controllerSkeltonColliderCollection.CanToLeft()) { return; }
-                if (!followerSkeltonColliderCollection.CanToLeft()) { return; }
+                if (!controller.CanToLeft()) { return; }
+                if (!follower.CanToLeft()) { return; }
                 controller.ToLeft();
                 follower.ToLeft();
-                controllerSkeltonColliderCollection.ToLeft();
-                followerSkeltonColliderCollection.ToLeft();
             }
 
             if (Input.GetKeyDown(KeyCode.RightArrow)) {
                 if (!CanSlide()) { return; }
-                if (!controllerSkeltonColliderCollection.CanToRight()) { return; }
-                if (!followerSkeltonColliderCollection.CanToRight()) { return; }
+                if (!controller.CanToRight()) { return; }
+                if (!follower.CanToRight()) { return; }
                 controller.ToRight();
                 follower.ToRight();
-                controllerSkeltonColliderCollection.ToRight();
-                followerSkeltonColliderCollection.ToRight();
             }
 
             if (Input.GetKeyDown(KeyCode.DownArrow)) {
                 if (!CanDown()) { return; }
-                //if (!controllerSkeltonColliderCollection.CanToDown()) { return; }
                 controller.ToDown();
                 follower.ToDown();
-                controllerSkeltonColliderCollection.ToDown();
-                followerSkeltonColliderCollection.ToDown();
             }
             // 左回り
             if (Input.GetKeyDown(KeyCode.Space)) {
@@ -85,116 +75,110 @@ namespace Puyopuyo.Application {
 
         private bool CanDown()
         {
-            return controller.State.IsFalling && follower.State.IsFalling;
+            return controller.IsFalling && follower.Puyo.State.IsFalling;
         }
 
         private bool CanMoveAboutPuyoState()
         {
             // どちらか一方だけをみればいいはず
-            return controller.State.IsFalling || controller.State.IsTouching;
+            return controller.Puyo.State.IsFalling || controller.Puyo.State.IsTouching;
         }
 
         private void RotateTo(Domain.PuyoRotation.Direction rotateDirection)
         {
             if (isRotating) { return; }
-            var followerPosition = Domain.PuyoRotation.GetCurrentPosition(controller.GameObject.transform.position, follower.GameObject.transform.position);
-            followerNextPosition = Domain.PuyoRotation.GetNextPosition(rotateDirection, followerPosition);
+            followerOriginalPosition = Domain.PuyoRotation.GetCurrentPosition(controller.Puyo.GameObject.transform.position, follower.Puyo.GameObject.transform.position);
+            followerNextPosition = Domain.PuyoRotation.GetNextPosition(rotateDirection, followerOriginalPosition);
+            // ひとまず回転中、反発はなしにした
+            follower.Puyo.Rigidbody.isKinematic = true;
+            controller.Puyo.Rigidbody.isKinematic = true;
             isRotating = true;
+
         }
 
         private void UpdateRotate()
         {
             if (!isRotating) { return; }
-            var startPos = follower.GameObject.transform.position;
-            var endPos = Domain.PuyoRotation.GetNextPosition(controller.GameObject.transform.position, followerNextPosition);
+            var startPos = follower.Puyo.GameObject.transform.position;
+            var endPos = Domain.PuyoRotation.GetNextPosition(controller.Puyo.GameObject.transform.position, followerNextPosition);
             rotateProgress += rotateSpeed * Time.deltaTime;
-            if (rotateProgress > 1) {
-                rotateProgress = 1f;
+            if (rotateProgress >= 1f) { rotateProgress = 1f; }
+            follower.LerpRotate(Vector3.Lerp(startPos, endPos, rotateProgress));
+            if (rotateProgress >= 1f)
+            {
+                rotateProgress = 0f;
                 isRotating = false;
                 followerNextPosition = null;
+                controller.Puyo.Rigidbody.isKinematic = false;
+                follower.Puyo.Rigidbody.isKinematic = false;
             }
-            follower.GameObject.transform.position = Vector3.Lerp(startPos, endPos, rotateProgress);
-            if (rotateProgress >= 1f) { rotateProgress = 0f; }
         }
 
         private void PropergateTouchEvent()
         {
             // 同期
-            if (controller.State.IsJustTouch && follower.State.IsFalling) {
-                follower.ToJustTouch();
-                controllerSkeltonColliderCollection.ToJustTouch();
-                followerSkeltonColliderCollection.ToJustTouch();
-            }
-            if (follower.State.IsJustTouch && controller.State.IsFalling) {
+            if (controller.IsJustTouch && follower.IsFalling)
+            {
                 controller.ToJustTouch();
-                controllerSkeltonColliderCollection.ToJustTouch();
-                followerSkeltonColliderCollection.ToJustTouch();
+                follower.ToJustTouch();
             }
-            if (controller.State.IsJustTouch && follower.State.IsJustTouch) {
-                if (controller.IsVerticalWithPartner()) {
-                    controller.DoTouchAnimation();
-                    follower.DoTouchAnimation();
+            if (follower.IsJustTouch && controller.IsFalling)
+            {
+                controller.ToJustTouch();
+                follower.ToJustTouch();
+            }
+            if (controller.IsJustTouch && follower.IsJustTouch) {
+                if (controller.Puyo.IsVerticalWithPartner()) {
+                    controller.Puyo.DoTouchAnimation();
+                    follower.Puyo.DoTouchAnimation();
                 } else {
-                    if (controller.IsGrounded) { controller.DoTouchAnimation(); }
-                    if (follower.IsGrounded) { follower.DoTouchAnimation(); }
+                    if (controller.Puyo.IsGrounded) { controller.Puyo.DoTouchAnimation(); }
+                    if (follower.Puyo.IsGrounded) { follower.Puyo.DoTouchAnimation(); }
                 }
                 controller.TryToKeepTouching();
                 follower.TryToKeepTouching();
-                controllerSkeltonColliderCollection.TryToKeepTouching();
-                followerSkeltonColliderCollection.TryToKeepTouching();
             }
         }
 
         private void PropergateCancelTouchEvent()
         {
-            if (controller.State.IsTouching && follower.State.IsCancelTouching) {
+            if (controller.IsTouching && follower.IsCancelTouching) {
                 controller.ToCancelTouching();
-                controllerSkeltonColliderCollection.ToCancelTouching();
-                followerSkeltonColliderCollection.ToCancelTouching();
-            }
-            if (controller.State.IsCancelTouching && follower.State.IsTouching) {
                 follower.ToCancelTouching();
-                controllerSkeltonColliderCollection.ToCancelTouching();
-                followerSkeltonColliderCollection.ToCancelTouching();
             }
-            if (controller.State.IsCancelTouching && follower.State.IsCancelTouching) {
+            if (controller.IsCancelTouching && follower.IsTouching) {
+                controller.ToCancelTouching();
+                follower.ToCancelTouching();
+            }
+            if (controller.IsCancelTouching && follower.IsCancelTouching) {
                 controller.ToFall();
                 follower.ToFall();
-                controllerSkeltonColliderCollection.ToFall();
-                followerSkeltonColliderCollection.ToFall();
             }
         }
 
         private void PropergateStayEvent()
         {
-            if (controller.State.IsJustStay && follower.State.IsTouching) {
-                follower.ToJustStay();
-                controllerSkeltonColliderCollection.ToJustStay();
-                followerSkeltonColliderCollection.ToJustStay();
-            }
-            if (follower.State.IsJustStay && controller.State.IsTouching) {
+            if (controller.IsJustStay && follower.IsTouching) {
                 controller.ToJustStay();
-                controllerSkeltonColliderCollection.ToJustStay();
-                followerSkeltonColliderCollection.ToJustStay();
+                follower.ToJustStay();
             }
-            if (controller.State.IsJustStay && follower.State.IsJustStay) {
+            if (follower.IsJustStay && controller.IsTouching) {
+                controller.ToJustStay();
+                follower.ToJustStay();
+            }
+            if (controller.IsJustStay && follower.IsJustStay) {
                 controller.ToStay();
                 follower.ToStay();
-                controllerSkeltonColliderCollection.ToStay();
-                followerSkeltonColliderCollection.ToStay();
                 DisposeObservables();
             }
         }
 
         public void DisposeObservables()
         {
-            controllerSkeltonColliderCollection.Dispose();
-            followerSkeltonColliderCollection.Dispose();
-
+            controller.Dispose();
+            follower.Dispose();
             controller = null;
             follower = null;
-            controllerSkeltonColliderCollection = null;
-            followerSkeltonColliderCollection = null;
         }
     }
 }

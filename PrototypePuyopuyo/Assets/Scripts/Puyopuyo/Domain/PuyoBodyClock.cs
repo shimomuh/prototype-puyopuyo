@@ -6,13 +6,16 @@ namespace Puyopuyo.Domain {
         void UpdateAboutTouch();
         void NotifyBeginToFall();
         void NotifyBeginToTouch();
+        void NotifyBeginToFreeFall();
         void NotifyFinishFallAction();
         void NotifyFinishStayAction();
+        void NofityFinishiFreeFallAction();
     }
     public class PuyoBodyClock : IPuyoBodyClock
     {
         private float MOVE_FALL_WAITING_SECONDS = 1f;
         private float MOVE_TOUCH_WAITING_SECONDS = 1f;
+        private float MOVE_FREE_FALL_WAITING_SECONDS = 0.01f;
         private IClock fallClock;
         private IClock touchClock;
 
@@ -56,6 +59,17 @@ namespace Puyopuyo.Domain {
         public void NotifyFinishStayAction()
         {
             touchClock.ReturnShippingState();
+        }
+
+        public void NotifyBeginToFreeFall()
+        {
+            fallClock.SetTimeToGoRound(MOVE_FREE_FALL_WAITING_SECONDS);
+            fallClock.SetHandsToZero();
+        }
+
+        public void NofityFinishiFreeFallAction()
+        {
+            fallClock.ReturnShippingState();
         }
     }
 }

@@ -32,7 +32,6 @@ namespace Puyopuyo.Domain
             else { return followee.x > follower.x ? LEFT : RIGHT; }
         }
 
-
         public static Position GetNextPosition(Direction rotateDirection, Position currentPosition)
         {
             var nextPosition = (currentPosition.Value + rotateDirection.Value) % 4;

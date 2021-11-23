@@ -7,7 +7,8 @@ namespace Puyopuyo.UI {
         Domain.IPuyoStateMachine State { get; }
         bool IsGrounded { get; }
         GameObject GameObject { get; }
-        void RecognizePartner(GameObject gameObj);
+        Rigidbody Rigidbody { get; }
+        void RecognizePartner(IPuyo partner);
         void ToFall();
         void ToJustStay();
         void ToStay();
@@ -23,28 +24,28 @@ namespace Puyopuyo.UI {
     }
     public class Puyo : MonoBehaviour, IPuyo
     {
-        private float MOVE_FALL_AMOUNT = -0.5f;
+        private float moveFallAmount = -0.5f;
         private Domain.IPuyoBodyClock puyoBodyClock;
         public Domain.IPuyoStateMachine State { get; private set; }
         public bool IsGrounded { get; private set; }
         public GameObject GameObject => gameObject;
-        private GameObject partner;
+        private IPuyo partner;
         private bool hasPartner => partner != null;
         private new Collider collider;
-        private new Rigidbody rigidbody;
+        public Rigidbody Rigidbody { get; private set; }
+        private bool isFreeFall;
 
         private void Awake()
         {
             puyoBodyClock = new Domain.PuyoBodyClock();
             State = new Domain.PuyoStateMachine();
             collider = gameObject.GetComponent<Collider>();
-            rigidbody = gameObject.GetComponent<Rigidbody>();
+            Rigidbody = gameObject.GetComponent<Rigidbody>();
             IsGrounded = false;
         }
 
-        public void RecognizePartner(GameObject partner)
+        public void RecognizePartner(IPuyo partner)
         {
-            if (partner.GetComponent<Puyo>() == null) { throw new Exception("ぷよはぷよしかパートナーに選べません"); }
             this.partner = partner;
         }
 
@@ -90,21 +91,30 @@ namespace Puyopuyo.UI {
 
         public void ToJustStay()
         {
+            if (State.IsJustStay) { return; }
             State.ToJustStay();
             puyoBodyClock.NotifyFinishStayAction();
         }
 
         public void ToStay()
         {
+            if (State.IsStaying) { return; }
             State.ToStaying();
-            IsGrounded = true;
-            rigidbody.isKinematic = false;
+            Rigidbody.isKinematic = false;
+            if (!IsGrounded) {
+                if (IsVerticalWithPartner() && partner.IsGrounded)
+                {
+                    IsGrounded = true;
+                    return;
+                }
+                FreeFall();
+            }
         }
 
         private void AutoDown()
         {
             if (!State.IsFalling) { return; }
-            transform.Translate(0, MOVE_FALL_AMOUNT, 0);
+            transform.Translate(0, moveFallAmount, 0);
         } 
 
         public IEnumerator TouchAnimation()
@@ -145,9 +155,15 @@ namespace Puyopuyo.UI {
             if (gameObject.transform.position.x != hitPosition.x) { return; }
             if (gameObject.transform.position.y < hitPosition.y) { return; }
             if (IsPartner(collision.gameObject)) { return; }
+            if (isFreeFall)
+            {
+                DoTouchAnimation();
+                State.ToStaying();
+                return;
+            }
             ToJustTouch();
             IsGrounded = true;
-            rigidbody.isKinematic = true; // 反発を防ぐ処理
+            Rigidbody.isKinematic = true; // 反発を防ぐ処理
             // パートナーがいる場合は PuyoController でアニメーションを同期すべきか判断させる
             if (!hasPartner) { DoTouchAnimation(); }
         }
@@ -161,7 +177,7 @@ namespace Puyopuyo.UI {
             if (IsPartner(collision.gameObject)) { return; } // そんなことないと思うけど
             ToCancelTouching();
             IsGrounded = false;
-            rigidbody.isKinematic = false;
+            Rigidbody.isKinematic = false;
         }
 
         private Vector3 GetHitPoint(Collision collision)
@@ -177,12 +193,14 @@ namespace Puyopuyo.UI {
 
         private bool IsPartner(GameObject gameObj)
         {
-            return ReferenceEquals(partner, gameObj);
+            return ReferenceEquals(partner.GameObject, gameObj);
         }
 
         public bool IsVerticalWithPartner()
         {
-            return gameObject.transform.position.x == partner.transform.position.x;
+            // Skelton の場合 ToStay で実行時、Skelton は partner がいないので null を対処しておく
+            if (partner == null) { return false; }
+            return gameObject.transform.position.x == partner.GameObject.transform.position.x;
         }
 
         public void ToJustTouch()
@@ -221,7 +239,7 @@ namespace Puyopuyo.UI {
 
         public void ToDown()
         {
-            transform.Translate(0, MOVE_FALL_AMOUNT, 0);
+            transform.Translate(0, moveFallAmount, 0);
         }
 
         public void Destroy()
@@ -232,6 +250,14 @@ namespace Puyopuyo.UI {
         public void ForceMove(Vector3 position)
         {
             transform.position = position;
+        }
+
+        private void FreeFall()
+        {
+            State.ToFalling();
+            isFreeFall = true;
+            moveFallAmount = -0.1f;
+            puyoBodyClock.NotifyBeginToFreeFall();
         }
     }
 }

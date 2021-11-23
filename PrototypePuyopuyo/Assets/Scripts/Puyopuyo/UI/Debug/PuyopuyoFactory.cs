@@ -12,7 +12,7 @@ namespace Puyopuyo.UI.Debug {
         [SerializeField] private InputField inputField;
 
         private void Awake() {
-            OnClick();
+            Application.PuyopuyoGenerator.Instance.Generate(field.transform, new Vector3(0, 0.5f, 0));
             AddEventTrigger(button);
         }
 
