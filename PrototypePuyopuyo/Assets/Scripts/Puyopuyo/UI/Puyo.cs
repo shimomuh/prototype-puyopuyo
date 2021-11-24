@@ -7,6 +7,7 @@ namespace Puyopuyo.UI {
         Domain.IPuyoStateMachine State { get; }
         bool IsGrounded { get; }
         GameObject GameObject { get; }
+        public IPuyo Partner { get; }
         Rigidbody Rigidbody { get; }
         void RecognizePartner(IPuyo partner);
         void ToFall();
@@ -29,8 +30,8 @@ namespace Puyopuyo.UI {
         public Domain.IPuyoStateMachine State { get; private set; }
         public bool IsGrounded { get; private set; }
         public GameObject GameObject => gameObject;
-        private IPuyo partner;
-        private bool hasPartner => partner != null;
+        public IPuyo Partner { get; private set; }
+        private bool hasPartner => Partner != null;
         private new Collider collider;
         public Rigidbody Rigidbody { get; private set; }
         private bool isFreeFall;
@@ -46,7 +47,7 @@ namespace Puyopuyo.UI {
 
         public void RecognizePartner(IPuyo partner)
         {
-            this.partner = partner;
+            this.Partner = partner;
         }
 
         private void Start()
@@ -101,8 +102,9 @@ namespace Puyopuyo.UI {
             if (State.IsStaying) { return; }
             State.ToStaying();
             Rigidbody.isKinematic = false;
+            isFreeFall = true;
             if (!IsGrounded) {
-                if (IsVerticalWithPartner() && partner.IsGrounded)
+                if (IsVerticalWithPartner() && Partner.IsGrounded)
                 {
                     IsGrounded = true;
                     return;
@@ -193,14 +195,14 @@ namespace Puyopuyo.UI {
 
         private bool IsPartner(GameObject gameObj)
         {
-            return ReferenceEquals(partner.GameObject, gameObj);
+            return ReferenceEquals(Partner.GameObject, gameObj);
         }
 
         public bool IsVerticalWithPartner()
         {
             // Skelton の場合 ToStay で実行時、Skelton は partner がいないので null を対処しておく
-            if (partner == null) { return false; }
-            return gameObject.transform.position.x == partner.GameObject.transform.position.x;
+            if (Partner == null) { return false; }
+            return gameObject.transform.position.x == Partner.GameObject.transform.position.x;
         }
 
         public void ToJustTouch()

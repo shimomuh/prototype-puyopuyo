@@ -58,7 +58,11 @@ namespace Puyopuyo.UI {
             foreach (var kvp in skeltonColliders)
             {
                 if (ToDirection(kvp.Key) != Direction.UpperLeft) { continue; }
-                if (kvp.Value.HasCollision) { hasCollision = true; }
+                if (kvp.Value.HasCollision)
+                {
+                    if (kvp.Value.TargetPuyo.Partner.GameObject == kvp.Value.HitGameObject) { continue; }
+                    hasCollision = true;
+                }
             }
             return !hasCollision;
         }
@@ -69,7 +73,11 @@ namespace Puyopuyo.UI {
             foreach (var kvp in skeltonColliders)
             {
                 if (ToDirection(kvp.Key) != Direction.UpperRight) { continue; }
-                if (kvp.Value.HasCollision) { hasCollision = true; }
+                if (kvp.Value.HasCollision)
+                {
+                    if (kvp.Value.TargetPuyo.Partner.GameObject == kvp.Value.HitGameObject) { continue; }
+                    hasCollision = true;
+                }
             }
             return !hasCollision;
         }

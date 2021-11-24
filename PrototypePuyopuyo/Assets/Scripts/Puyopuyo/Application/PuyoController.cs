@@ -89,6 +89,16 @@ namespace Puyopuyo.Application {
             if (isRotating) { return; }
             followerOriginalPosition = Domain.PuyoRotation.GetCurrentPosition(controller.Puyo.GameObject.transform.position, follower.Puyo.GameObject.transform.position);
             followerNextPosition = Domain.PuyoRotation.GetNextPosition(rotateDirection, followerOriginalPosition);
+
+            if (followerNextPosition == Domain.PuyoRotation.LEFT) {
+                if (!controller.CanToLeft()) { return; }
+                if (!follower.CanToLeft()) { return; }
+            }
+            if (followerNextPosition == Domain.PuyoRotation.RIGHT)
+            {
+                if (!controller.CanToRight()) { return; }
+                if (!follower.CanToRight()) { return; }
+            }
             // ひとまず回転中、反発はなしにした
             follower.Puyo.Rigidbody.isKinematic = true;
             controller.Puyo.Rigidbody.isKinematic = true;
