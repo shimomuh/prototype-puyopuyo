@@ -34,6 +34,7 @@ namespace Puyopuyo.UI.Debug
                 UnityEngine.Debug.Log($"position : {puyo.GameObject.transform.position}");
                 UnityEngine.Debug.Log($"state : {puyo.State}");
                 UnityEngine.Debug.Log($"IsGrounded? : {puyo.IsGrounded}");
+                UnityEngine.Debug.Log($"isKinematic? : {puyo.Rigidbody.isKinematic}");
             }
         }
     }

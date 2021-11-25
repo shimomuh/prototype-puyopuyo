@@ -12,26 +12,39 @@ namespace Puyopuyo.UI {
             this.TargetPuyo = targetPuyo;
         }
 
+        private bool IsSkelton(GameObject gameObj)
+        {
+            return gameObj.GetComponent<SkeltonCollider>() != null;
+        }
+
         private bool IsTarget(GameObject gameObj)
         {
             return ReferenceEquals(TargetPuyo.GameObject, gameObj);
         }
 
-        private bool IsSkelton(GameObject gameObject)
+        private bool IsPartner(GameObject gameObj)
         {
-            return gameObject.GetComponent<SkeltonCollider>() != null;
+            return ReferenceEquals(TargetPuyo.Partner.GameObject, gameObj);
         }
 
         void OnTriggerEnter(Collider collider)
         {
             if (IsSkelton(collider.gameObject)) { return; }
             if (IsTarget(collider.gameObject)) { return; }
+            if (IsPartner(collider.gameObject)) {
+                TargetPuyo.Partner.Rigidbody.isKinematic = true;
+                return;
+            }
             HasCollision = true;
             HitGameObject = collider.gameObject;
         }
 
         void OnTriggerExit(Collider collider)
         {
+            if (IsPartner(collider.gameObject))
+            {
+                TargetPuyo.Partner.Rigidbody.isKinematic = false;
+            }
             HasCollision = false;
             HitGameObject = null;
         }
