@@ -137,7 +137,10 @@ namespace Puyopuyo.Application {
                 controller.ToJustTouch();
                 follower.ToJustTouch();
             }
-            if (controller.IsJustTouch && follower.IsJustTouch) {
+            if (controller.IsJustTouch && follower.IsJustTouch)
+            {
+                controller.ToJustTouch();
+                follower.ToJustTouch();
                 if (controller.Puyo.IsVerticalWithPartner()) {
                     controller.Puyo.DoTouchAnimation();
                     follower.Puyo.DoTouchAnimation();
@@ -160,7 +163,10 @@ namespace Puyopuyo.Application {
                 controller.ToCancelTouching();
                 follower.ToCancelTouching();
             }
-            if (controller.IsCancelTouching && follower.IsCancelTouching) {
+            if (controller.IsCancelTouching && follower.IsCancelTouching)
+            {
+                controller.ToCancelTouching();
+                follower.ToCancelTouching();
                 controller.ToFall();
                 follower.ToFall();
             }
@@ -176,7 +182,10 @@ namespace Puyopuyo.Application {
                 controller.ToJustStay();
                 follower.ToJustStay();
             }
-            if (controller.IsJustStay && follower.IsJustStay) {
+            if (controller.IsJustStay && follower.IsJustStay)
+            {
+                controller.ToJustStay();
+                follower.ToJustStay();
                 controller.ToStay();
                 follower.ToStay();
                 DisposeObservables();
