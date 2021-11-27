@@ -52,7 +52,8 @@ namespace Puyopuyo.UI {
 
         private void Start()
         {
-            ToFall();
+            State.ToFalling();
+            puyoBodyClock.NotifyBeginToFall();
         }
 
         private void Update()
@@ -86,6 +87,7 @@ namespace Puyopuyo.UI {
 
         public void ToFall()
         {
+            if (State.IsFalling) { return; }
             State.ToFalling();
             puyoBodyClock.NotifyBeginToFall();
         }
