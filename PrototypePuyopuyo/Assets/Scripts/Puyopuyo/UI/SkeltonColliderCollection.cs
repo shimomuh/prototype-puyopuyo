@@ -4,9 +4,21 @@ using UnityEngine;
 
 namespace Puyopuyo.UI {
     public interface ISkeltonColliderCollection {
+        bool CanToLeft();
+        bool CanToRight();
+        bool CanToDown();
         void ToLeft();
         void ToRight();
         void ToDown();
+        void ForceMove(Vector3 position);
+        void LerpRotate(Vector3 position);
+        void ToFall();
+        void ToJustTouch();
+        void ToCancelTouching();
+        void TryToKeepTouching();
+        void ToJustStay();
+        void ToStay();
+        void Dispose();
     }
     public class SkeltonColliderCollection : ISkeltonColliderCollection
     {
@@ -46,7 +58,11 @@ namespace Puyopuyo.UI {
             foreach (var kvp in skeltonColliders)
             {
                 if (ToDirection(kvp.Key) != Direction.UpperLeft) { continue; }
-                if (kvp.Value.HasCollision) { hasCollision = true; }
+                if (kvp.Value.HasCollision)
+                {
+                    if (kvp.Value.TargetPuyo.Partner.GameObject == kvp.Value.HitGameObject) { continue; }
+                    hasCollision = true;
+                }
             }
             return !hasCollision;
         }
@@ -57,12 +73,15 @@ namespace Puyopuyo.UI {
             foreach (var kvp in skeltonColliders)
             {
                 if (ToDirection(kvp.Key) != Direction.UpperRight) { continue; }
-                if (kvp.Value.HasCollision) { hasCollision = true; }
+                if (kvp.Value.HasCollision)
+                {
+                    if (kvp.Value.TargetPuyo.Partner.GameObject == kvp.Value.HitGameObject) { continue; }
+                    hasCollision = true;
+                }
             }
             return !hasCollision;
         }
 
-        // TODO: 現状壁側で下げる,接地直前で下げる動作に対応していない（後者は仕様として無視可能）
         public bool CanToDown()
         {
             bool hasCollision = false;
@@ -95,6 +114,22 @@ namespace Puyopuyo.UI {
             foreach (var kvp in skeltonColliders)
             {
                 kvp.Value.ToDown();
+            }
+        }
+
+        public void ForceMove(Vector3 position)
+        {
+            foreach (var kvp in skeltonColliders)
+            {
+                kvp.Value.ForceMove(position);
+            }
+        }
+
+        public void LerpRotate(Vector3 position)
+        {
+            foreach (var kvp in skeltonColliders)
+            {
+                kvp.Value.ForceMove(OFFSETS[kvp.Key] + position);
             }
         }
 
@@ -152,7 +187,7 @@ namespace Puyopuyo.UI {
             {
                 kvp.Value.Destroy();
             }
-            skeltonColliders = new Dictionary<int, SkeltonCollider>();
+            skeltonColliders = null;
         }
     }
 }

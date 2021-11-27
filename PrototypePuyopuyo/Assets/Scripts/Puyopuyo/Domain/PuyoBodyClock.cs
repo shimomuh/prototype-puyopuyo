@@ -6,23 +6,26 @@ namespace Puyopuyo.Domain {
         void UpdateAboutTouch();
         void NotifyBeginToFall();
         void NotifyBeginToTouch();
+        void NotifyBeginToFreeFall();
         void NotifyFinishFallAction();
         void NotifyFinishStayAction();
+        void NofityFinishiFreeFallAction();
     }
-    public class PuyoBodyClock : Puyopuyo.Domain.IPuyoBodyClock
+    public class PuyoBodyClock : IPuyoBodyClock
     {
         private float MOVE_FALL_WAITING_SECONDS = 1f;
         private float MOVE_TOUCH_WAITING_SECONDS = 1f;
-        private Puyopuyo.Domain.IClock fallClock;
-        private Puyopuyo.Domain.IClock touchClock;
+        private float MOVE_FREE_FALL_WAITING_SECONDS = 0.01f;
+        private IClock fallClock;
+        private IClock touchClock;
 
         public bool ShouldFallAction => fallClock.Alarm.IsRing;
         public bool ShouldStayAction => touchClock.Alarm.IsRing;
 
         public PuyoBodyClock()
         {
-            fallClock = new Puyopuyo.Domain.Clock(MOVE_FALL_WAITING_SECONDS);
-            touchClock = new Puyopuyo.Domain.Clock(MOVE_TOUCH_WAITING_SECONDS);
+            fallClock = new Clock(MOVE_FALL_WAITING_SECONDS);
+            touchClock = new Clock(MOVE_TOUCH_WAITING_SECONDS);
         }
 
         public void UpdateAboutFall()
@@ -56,6 +59,17 @@ namespace Puyopuyo.Domain {
         public void NotifyFinishStayAction()
         {
             touchClock.ReturnShippingState();
+        }
+
+        public void NotifyBeginToFreeFall()
+        {
+            fallClock.SetTimeToGoRound(MOVE_FREE_FALL_WAITING_SECONDS);
+            fallClock.SetHandsToZero();
+        }
+
+        public void NofityFinishiFreeFallAction()
+        {
+            fallClock.ReturnShippingState();
         }
     }
 }

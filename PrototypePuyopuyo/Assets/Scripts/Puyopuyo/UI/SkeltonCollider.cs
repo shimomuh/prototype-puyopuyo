@@ -1,40 +1,52 @@
 using UnityEngine;
 
 namespace Puyopuyo.UI {
-    /// <summary>
-    /// ???????????????
-    /// ??????????????? IsTrigger: true ? Collider ? Rigidbody ???
-    /// </summary>
     public class SkeltonCollider : Puyo
     {
         public bool HasCollision { get; private set; }
-        private GameObject targetPuyo;
+        public GameObject HitGameObject { get; private set; }
+        public IPuyo TargetPuyo { get; private set; }
 
-        public void RecognizeTarget(Puyo targetPuyo)
+        public void RecognizeTarget(IPuyo targetPuyo)
         {
-            this.targetPuyo = targetPuyo.gameObject;
+            this.TargetPuyo = targetPuyo;
+        }
+
+        private bool IsSkelton(GameObject gameObj)
+        {
+            return gameObj.GetComponent<SkeltonCollider>() != null;
         }
 
         private bool IsTarget(GameObject gameObj)
         {
-            return ReferenceEquals(targetPuyo, gameObj);
+            return ReferenceEquals(TargetPuyo.GameObject, gameObj);
         }
 
-        private bool IsSkelton(GameObject gameObject)
+        private bool IsPartner(GameObject gameObj)
         {
-            return gameObject.GetComponent<SkeltonCollider>() != null;
+            return ReferenceEquals(TargetPuyo.Partner.GameObject, gameObj);
         }
 
         void OnTriggerEnter(Collider collider)
         {
             if (IsSkelton(collider.gameObject)) { return; }
             if (IsTarget(collider.gameObject)) { return; }
+            if (IsPartner(collider.gameObject)) {
+                TargetPuyo.Partner.Rigidbody.isKinematic = true;
+                return;
+            }
             HasCollision = true;
+            HitGameObject = collider.gameObject;
         }
 
         void OnTriggerExit(Collider collider)
         {
+            if (IsPartner(collider.gameObject))
+            {
+                TargetPuyo.Partner.Rigidbody.isKinematic = false;
+            }
             HasCollision = false;
+            HitGameObject = null;
         }
     }
 }

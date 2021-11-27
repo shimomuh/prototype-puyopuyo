@@ -8,6 +8,7 @@ namespace Puyopuyo.Domain {
         void TikTok();
         void ReturnShippingState();
         void SetHandsToZero();
+        void SetTimeToGoRound(float timeToGoRound);
     }
 
     public class Clock : IClock {
@@ -48,6 +49,11 @@ namespace Puyopuyo.Domain {
             currentTime = 0f;
             Alarm.Stop();
             Battery.Insert();
+        }
+
+        public void SetTimeToGoRound(float timeToGoRound)
+        {
+            this.timeToGoRound = timeToGoRound;
         }
     }
 }
