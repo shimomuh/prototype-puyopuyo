@@ -75,13 +75,13 @@ namespace Puyopuyo.Application {
 
         private bool CanDown()
         {
-            return controller.IsFalling && follower.Puyo.State.IsFalling;
+            return controller.IsFalling && follower.IsFalling;
         }
 
         private bool CanMoveAboutPuyoState()
         {
             // どちらか一方だけをみればいいはず
-            return controller.Puyo.State.IsFalling || controller.Puyo.State.IsTouching;
+            return controller.IsFalling || controller.IsTouching;
         }
 
         private void RotateTo(Domain.PuyoRotation.Direction rotateDirection)
@@ -90,12 +90,55 @@ namespace Puyopuyo.Application {
             followerOriginalPosition = Domain.PuyoRotation.GetCurrentPosition(controller.Puyo.GameObject.transform.position, follower.Puyo.GameObject.transform.position);
             followerNextPosition = Domain.PuyoRotation.GetNextPosition(rotateDirection, followerOriginalPosition);
 
-            if (followerNextPosition == Domain.PuyoRotation.LEFT) {
-                if (!controller.CanToLeft()) { return; }
+            if (followerNextPosition == Domain.PuyoRotation.LEFT)
+            {
+                if (rotateDirection == Domain.PuyoRotation.ROTATE_LEFT)
+                {
+                    if (!controller.CanToLeft()) { return; }
+                    // 回転と自由落下が組み合わさって食い込まないような処置
+                    // 処理が複雑化するようなら違うソリューションで解決するのはアリ
+                    if (controller.IsDangerRotateLeft())
+                    {
+                        controller.ResetFallTime();
+                        follower.ResetFallTime();
+                    }
+                }
             }
             if (followerNextPosition == Domain.PuyoRotation.RIGHT)
             {
-                if (!controller.CanToRight()) { return; }
+                if (rotateDirection == Domain.PuyoRotation.ROTATE_RIGHT)
+                {
+                    if (!controller.CanToRight()) { return; }
+                    // 回転と自由落下が組み合わさって食い込まないような処置
+                    // 処理が複雑化するようなら違うソリューションで解決するのはアリ
+                    if (controller.IsDangerRotateRight())
+                    {
+                        controller.ResetFallTime();
+                        follower.ResetFallTime();
+                    }
+                }
+            }
+            if (followerNextPosition == Domain.PuyoRotation.LOWER)
+            {
+                if (rotateDirection == Domain.PuyoRotation.ROTATE_LEFT) {
+                    // 競り上がりの処理
+                    if (controller.IsDangerRotateLeft())
+                    {
+                        controller.ResetFallTime();
+                        follower.ResetFallTime();
+                        UnityEngine.Debug.Log("競り上げたい。ただせりあげる量がわからない");
+                    }
+                }
+                else if (rotateDirection == Domain.PuyoRotation.ROTATE_RIGHT)
+                {
+                    // 競り上がりの処理
+                    if (controller.IsDangerRotateRight())
+                    {
+                        controller.ResetFallTime();
+                        follower.ResetFallTime();
+                        UnityEngine.Debug.Log("競り上げたい。ただせりあげる量がわからない");
+                    }
+                }
             }
             // ひとまず回転中、反発はなしにした
             follower.Puyo.Rigidbody.isKinematic = true;
@@ -112,14 +155,16 @@ namespace Puyopuyo.Application {
             rotateProgress += rotateSpeed * Time.deltaTime;
             if (rotateProgress >= 1f) { rotateProgress = 1f; }
             follower.LerpRotate(Vector3.Lerp(startPos, endPos, rotateProgress));
-            if (rotateProgress >= 1f)
-            {
-                rotateProgress = 0f;
-                isRotating = false;
-                followerNextPosition = null;
-                controller.Puyo.Rigidbody.isKinematic = false;
-                follower.Puyo.Rigidbody.isKinematic = false;
-            }
+            if (rotateProgress >= 1f) { FinishToRotate(); }
+        }
+
+        private void FinishToRotate()
+        {
+            rotateProgress = 0f;
+            isRotating = false;
+            followerNextPosition = null;
+            controller.Puyo.Rigidbody.isKinematic = false;
+            follower.Puyo.Rigidbody.isKinematic = false;
         }
 
         private void PropergateTouchEvent()

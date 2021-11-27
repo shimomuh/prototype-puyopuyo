@@ -7,12 +7,15 @@ namespace Puyopuyo.UI {
         bool CanToLeft();
         bool CanToRight();
         bool CanToDown();
+        bool HasCollisionAtLowerLeft();
+        bool HasCollisionAtLowerRight();
         void ToLeft();
         void ToRight();
         void ToDown();
         void ForceMove(Vector3 position);
         void LerpRotate(Vector3 position);
         void ToFall();
+        void ResetFallTime();
         void ToJustTouch();
         void ToCancelTouching();
         void TryToKeepTouching();
@@ -35,8 +38,6 @@ namespace Puyopuyo.UI {
             { (int)Direction.LowerRight, new Vector3(1, -1, 0) },
             { (int)Direction.UpperRight, new Vector3(1, 0, 0) }
         };
-        private Transform fieldTransform;
-        private Vector3 landmarkPosition;
         private Dictionary<int, SkeltonCollider> skeltonColliders = new Dictionary<int, SkeltonCollider>();
 
         public SkeltonColliderCollection(Transform fieldTransform, Vector3 landmarkPosition, Puyo targetPuyo)
@@ -54,32 +55,12 @@ namespace Puyopuyo.UI {
 
         public bool CanToLeft()
         {
-            bool hasCollision = false;
-            foreach (var kvp in skeltonColliders)
-            {
-                if (ToDirection(kvp.Key) != Direction.UpperLeft) { continue; }
-                if (kvp.Value.HasCollision)
-                {
-                    if (kvp.Value.TargetPuyo.Partner.GameObject == kvp.Value.HitGameObject) { continue; }
-                    hasCollision = true;
-                }
-            }
-            return !hasCollision;
+            return !HasCollision(Direction.UpperLeft);
         }
 
         public bool CanToRight()
         {
-            bool hasCollision = false;
-            foreach (var kvp in skeltonColliders)
-            {
-                if (ToDirection(kvp.Key) != Direction.UpperRight) { continue; }
-                if (kvp.Value.HasCollision)
-                {
-                    if (kvp.Value.TargetPuyo.Partner.GameObject == kvp.Value.HitGameObject) { continue; }
-                    hasCollision = true;
-                }
-            }
-            return !hasCollision;
+            return !HasCollision(Direction.UpperRight);
         }
 
         public bool CanToDown()
@@ -91,6 +72,35 @@ namespace Puyopuyo.UI {
                 if (kvp.Value.HasCollision) { hasCollision = true; }
             }
             return !hasCollision;
+        }
+
+        public bool HasCollisionAtLowerLeft()
+        {
+            return HasCollision(Direction.LowerLeft);
+        }
+
+        public bool HasCollisionAtLowerRight()
+        {
+            return HasCollision(Direction.LowerRight);
+        }
+
+        private bool HasCollision(Direction targetDirection)
+        {
+            bool hasCollision = false;
+            foreach (var kvp in skeltonColliders)
+            {
+                if (ToDirection(kvp.Key) != targetDirection) { continue; }
+                if (kvp.Value.HasCollision)
+                {
+                    if (kvp.Value.HitGameObjectInstanceIds.Contains(kvp.Value.TargetPuyo.Partner.GameObject.GetInstanceID())) { continue; }
+                    if (targetDirection == Direction.UpperLeft)
+                    {
+                        UnityEngine.Debug.Log(kvp.Value.TargetPuyo.Partner.GameObject.name);
+                    }
+                    hasCollision = true;
+                }
+            }
+            return hasCollision;
         }
 
         public void ToLeft()
@@ -138,6 +148,14 @@ namespace Puyopuyo.UI {
             foreach (var kvp in skeltonColliders)
             {
                 kvp.Value.ToFall();
+            }
+        }
+
+        public void ResetFallTime()
+        {
+            foreach (var kvp in skeltonColliders)
+            {
+                kvp.Value.ResetFallTime();
             }
         }
 

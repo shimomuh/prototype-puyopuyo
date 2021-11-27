@@ -11,6 +11,7 @@ namespace Puyopuyo.UI {
         Rigidbody Rigidbody { get; }
         void RecognizePartner(IPuyo partner);
         void ToFall();
+        void ResetFallTime();
         void ToJustStay();
         void ToStay();
         void ToJustTouch();
@@ -36,7 +37,7 @@ namespace Puyopuyo.UI {
         public Rigidbody Rigidbody { get; private set; }
         private bool isFreeFall;
 
-        private void Awake()
+        protected void Awake()
         {
             puyoBodyClock = new Domain.PuyoBodyClock();
             State = new Domain.PuyoStateMachine();
@@ -89,6 +90,11 @@ namespace Puyopuyo.UI {
         {
             if (State.IsFalling) { return; }
             State.ToFalling();
+            puyoBodyClock.NotifyBeginToFall();
+        }
+
+        public void ResetFallTime()
+        {
             puyoBodyClock.NotifyBeginToFall();
         }
 
