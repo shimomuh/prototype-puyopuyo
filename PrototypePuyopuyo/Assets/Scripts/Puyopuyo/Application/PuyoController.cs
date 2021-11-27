@@ -92,12 +92,10 @@ namespace Puyopuyo.Application {
 
             if (followerNextPosition == Domain.PuyoRotation.LEFT) {
                 if (!controller.CanToLeft()) { return; }
-                if (!follower.CanToLeft()) { return; }
             }
             if (followerNextPosition == Domain.PuyoRotation.RIGHT)
             {
                 if (!controller.CanToRight()) { return; }
-                if (!follower.CanToRight()) { return; }
             }
             // ひとまず回転中、反発はなしにした
             follower.Puyo.Rigidbody.isKinematic = true;
