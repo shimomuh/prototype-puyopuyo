@@ -14,6 +14,8 @@ namespace Puyopuyo.UI
         bool CanToLeft();
         bool CanToRight();
         bool CanToDown();
+        bool IsDangerRotateLeft();
+        bool IsDangerRotateRight();
         void ToLeft();
         void ToRight();
         void ToDown();
@@ -22,6 +24,7 @@ namespace Puyopuyo.UI
         void TryToKeepTouching();
         void ToCancelTouching();
         void ToFall();
+        void ResetFallTime();
         void ToJustStay();
         void ToStay();
         void Dispose();
@@ -71,6 +74,16 @@ namespace Puyopuyo.UI
             return skeltonColliderCollection.CanToDown();
         }
 
+        public bool IsDangerRotateLeft()
+        {
+            return skeltonColliderCollection.HasCollisionAtLowerLeft();
+        }
+
+        public bool IsDangerRotateRight()
+        {
+            return skeltonColliderCollection.HasCollisionAtLowerRight();
+        }
+
         public void ToLeft()
         {
             puyo.ToLeft();
@@ -117,6 +130,12 @@ namespace Puyopuyo.UI
         {
             puyo.ToFall();
             skeltonColliderCollection.ToFall();
+        }
+
+        public void ResetFallTime()
+        {
+            puyo.ResetFallTime();
+            skeltonColliderCollection.ResetFallTime();
         }
 
         public void ToJustStay()

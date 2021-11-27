@@ -1,11 +1,18 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Puyopuyo.UI {
     public class SkeltonCollider : Puyo
     {
-        public bool HasCollision { get; private set; }
-        public GameObject HitGameObject { get; private set; }
+        public bool HasCollision => HitGameObjectInstanceIds.Count != 0;
+        public List<int> HitGameObjectInstanceIds { get; private set; }
         public IPuyo TargetPuyo { get; private set; }
+
+        protected new void Awake()
+        {
+            base.Awake();
+            HitGameObjectInstanceIds = new List<int>();
+        }
 
         public void RecognizeTarget(IPuyo targetPuyo)
         {
@@ -31,22 +38,19 @@ namespace Puyopuyo.UI {
         {
             if (IsSkelton(collider.gameObject)) { return; }
             if (IsTarget(collider.gameObject)) { return; }
-            if (IsPartner(collider.gameObject)) {
-                TargetPuyo.Partner.Rigidbody.isKinematic = true;
-                return;
+            if (IsPartner(collider.gameObject)) { return; }
+            if (!HitGameObjectInstanceIds.Contains(collider.gameObject.GetInstanceID()))
+            {
+                HitGameObjectInstanceIds.Add(collider.gameObject.GetInstanceID());
             }
-            HasCollision = true;
-            HitGameObject = collider.gameObject;
         }
 
         void OnTriggerExit(Collider collider)
         {
-            if (IsPartner(collider.gameObject))
+            if (!HitGameObjectInstanceIds.Contains(collider.gameObject.GetInstanceID()))
             {
-                TargetPuyo.Partner.Rigidbody.isKinematic = false;
+                HitGameObjectInstanceIds.Remove(collider.gameObject.GetInstanceID());
             }
-            HasCollision = false;
-            HitGameObject = null;
         }
     }
 }
