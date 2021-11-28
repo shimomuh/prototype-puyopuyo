@@ -27,6 +27,8 @@ namespace Puyopuyo.UI
         void ResetFallTime();
         void ToJustStay();
         void ToStay();
+        float HeightBetweenClosestPoint();
+        void ForceMove(Vector3 position);
         void Dispose();
     }
 
@@ -148,6 +150,17 @@ namespace Puyopuyo.UI
         {
             puyo.ToStay();
             skeltonColliderCollection.ToStay();
+        }
+
+        public float HeightBetweenClosestPoint()
+        {
+            return skeltonColliderCollection.HeightBetweenClosestPoint();
+        }
+
+        public void ForceMove(Vector3 position)
+        {
+            puyo.ForceMove(position);
+            skeltonColliderCollection.ForceMove(position);
         }
 
         public void Dispose()
