@@ -57,8 +57,8 @@ namespace Puyopuyo.UI {
         public float HeightBetweenClosestPoint()
         {
             if (!HasCollision) { return 0f; }
-            var y = HitColliders.Min(c => c.gameObject.transform.position.y);
-            return transform.position.y - y;
+            var y = HitColliders.Min(c => c.ClosestPoint(transform.position).y);
+            return -y;
         }
     }
 }
