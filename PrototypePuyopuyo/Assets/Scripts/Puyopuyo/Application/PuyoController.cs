@@ -126,7 +126,8 @@ namespace Puyopuyo.Application {
                     {
                         controller.ResetFallTime();
                         follower.ResetFallTime();
-                        UnityEngine.Debug.Log("競り上げたい。ただせりあげる量がわからない");
+                        var y = controller.HeightBetweenClosestPoint();
+                        controller.ForceMove(controller.Puyo.GameObject.transform.position + new Vector3(0, y, 0));
                     }
                 }
                 else if (rotateDirection == Domain.PuyoRotation.ROTATE_RIGHT)
@@ -136,7 +137,8 @@ namespace Puyopuyo.Application {
                     {
                         controller.ResetFallTime();
                         follower.ResetFallTime();
-                        UnityEngine.Debug.Log("競り上げたい。ただせりあげる量がわからない");
+                        var y = controller.HeightBetweenClosestPoint();
+                        controller.ForceMove(controller.Puyo.GameObject.transform.position + new Vector3(0, y, 0));
                     }
                 }
             }

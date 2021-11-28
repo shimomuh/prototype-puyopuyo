@@ -1,17 +1,18 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace Puyopuyo.UI {
     public class SkeltonCollider : Puyo
     {
-        public bool HasCollision => HitGameObjectInstanceIds.Count != 0;
-        public List<int> HitGameObjectInstanceIds { get; private set; }
+        public bool HasCollision => HitColliders.Count != 0;
+        public List<Collider> HitColliders { get; private set; }
         public IPuyo TargetPuyo { get; private set; }
 
         protected new void Awake()
         {
             base.Awake();
-            HitGameObjectInstanceIds = new List<int>();
+            HitColliders = new List<Collider>();
         }
 
         public void RecognizeTarget(IPuyo targetPuyo)
@@ -39,18 +40,27 @@ namespace Puyopuyo.UI {
             if (IsSkelton(collider.gameObject)) { return; }
             if (IsTarget(collider.gameObject)) { return; }
             if (IsPartner(collider.gameObject)) { return; }
-            if (!HitGameObjectInstanceIds.Contains(collider.gameObject.GetInstanceID()))
+            if (!HitColliders.Exists(c => c.gameObject.GetInstanceID() == collider.gameObject.GetInstanceID()))
             {
-                HitGameObjectInstanceIds.Add(collider.gameObject.GetInstanceID());
+                HitColliders.Add(collider);
             }
+            UnityEngine.Debug.Log(collider.gameObject.name);
+            UnityEngine.Debug.Log(collider.ClosestPoint(transform.position));
         }
 
         void OnTriggerExit(Collider collider)
         {
-            if (!HitGameObjectInstanceIds.Contains(collider.gameObject.GetInstanceID()))
+            if (!HitColliders.Exists(c => c.gameObject.GetInstanceID() == collider.gameObject.GetInstanceID()))
             {
-                HitGameObjectInstanceIds.Remove(collider.gameObject.GetInstanceID());
+                HitColliders.Remove(collider);
             }
+        }
+
+        public float HeightBetweenClosestPoint()
+        {
+            if (!HasCollision) { return 0f; }
+            var y = HitColliders.Min(c => c.gameObject.transform.position.y);
+            return transform.position.y - y;
         }
     }
 }

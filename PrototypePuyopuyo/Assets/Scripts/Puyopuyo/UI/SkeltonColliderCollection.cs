@@ -21,6 +21,7 @@ namespace Puyopuyo.UI {
         void TryToKeepTouching();
         void ToJustStay();
         void ToStay();
+        float HeightBetweenClosestPoint();
         void Dispose();
     }
     public class SkeltonColliderCollection : ISkeltonColliderCollection
@@ -28,6 +29,7 @@ namespace Puyopuyo.UI {
         private enum Direction {
             UpperLeft,
             LowerLeft,
+            Lower,
             LowerRight,
             UpperRight
         }
@@ -35,6 +37,7 @@ namespace Puyopuyo.UI {
         {
             { (int)Direction.UpperLeft, new Vector3(-1, 0, 0) },
             { (int)Direction.LowerLeft, new Vector3(-1, -1, 0) },
+            { (int)Direction.Lower, new Vector3(0, -1, 0) },
             { (int)Direction.LowerRight, new Vector3(1, -1, 0) },
             { (int)Direction.UpperRight, new Vector3(1, 0, 0) }
         };
@@ -92,11 +95,7 @@ namespace Puyopuyo.UI {
                 if (ToDirection(kvp.Key) != targetDirection) { continue; }
                 if (kvp.Value.HasCollision)
                 {
-                    if (kvp.Value.HitGameObjectInstanceIds.Contains(kvp.Value.TargetPuyo.Partner.GameObject.GetInstanceID())) { continue; }
-                    if (targetDirection == Direction.UpperLeft)
-                    {
-                        UnityEngine.Debug.Log(kvp.Value.TargetPuyo.Partner.GameObject.name);
-                    }
+                    if (kvp.Value.HitColliders.Exists(c => c.gameObject.GetInstanceID() == kvp.Value.TargetPuyo.Partner.GameObject.GetInstanceID())) { continue; }
                     hasCollision = true;
                 }
             }
@@ -131,7 +130,7 @@ namespace Puyopuyo.UI {
         {
             foreach (var kvp in skeltonColliders)
             {
-                kvp.Value.ForceMove(position);
+                kvp.Value.ForceMove(position + OFFSETS[kvp.Key]);
             }
         }
 
@@ -197,6 +196,17 @@ namespace Puyopuyo.UI {
             {
                 kvp.Value.ToStay();
             }
+        }
+
+        public float HeightBetweenClosestPoint()
+        {
+            foreach (var kvp in skeltonColliders)
+            {
+                if (ToDirection(kvp.Key) != Direction.Lower) { continue; }
+                if (!HasCollision(Direction.Lower)) { continue; }
+                return kvp.Value.HeightBetweenClosestPoint();
+            }
+            return 0;
         }
 
         public void Dispose()
