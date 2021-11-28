@@ -44,13 +44,11 @@ namespace Puyopuyo.UI {
             {
                 HitColliders.Add(collider);
             }
-            UnityEngine.Debug.Log(collider.gameObject.name);
-            UnityEngine.Debug.Log(collider.ClosestPoint(transform.position));
         }
 
         void OnTriggerExit(Collider collider)
         {
-            if (!HitColliders.Exists(c => c.gameObject.GetInstanceID() == collider.gameObject.GetInstanceID()))
+            if (HitColliders.Exists(c => c.gameObject.GetInstanceID() == collider.gameObject.GetInstanceID()))
             {
                 HitColliders.Remove(collider);
             }
