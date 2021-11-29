@@ -1,11 +1,13 @@
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 namespace Puyopuyo.UI {
     public class SkeltonCollider : Puyo
     {
         public bool HasCollision => HitColliders.Count != 0;
+        // TODO: HitColliders でなく InstanceID のリストでもよい
+        // 本来 ClosestPointOnBounds で Collider を使いたかったが必要なくなった
+        // 今後 Collider でなく GameObject だけでよい可能性もあるが一旦このままで。
         public List<Collider> HitColliders { get; private set; }
         public IPuyo TargetPuyo { get; private set; }
 
@@ -57,8 +59,9 @@ namespace Puyopuyo.UI {
         public float HeightBetweenClosestPoint()
         {
             if (!HasCollision) { return 0f; }
-            var y = HitColliders.Min(c => c.gameObject.transform.position.y);
-            return transform.position.y - y;
+            // NOTE: 計算効率考慮で本質とは違う計算をしている
+            // transform.position.y + 1 の部分は Mathf.Abs が正しい
+            return (((transform.position.y + 1) * 10 % 10) == 5) ? 0.5f : 1f;
         }
     }
 }

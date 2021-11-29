@@ -23,12 +23,14 @@ namespace Puyopuyo.UI
         void ToJustTouch();
         void TryToKeepTouching();
         void ToCancelTouching();
+        void Stop();
+        void Restart();
         void ToFall();
-        void ResetFallTime();
         void ToJustStay();
         void ToStay();
         float HeightBetweenClosestPoint();
         void ForceMove(Vector3 position);
+        void ForceChangeState();
         void Dispose();
     }
 
@@ -78,12 +80,12 @@ namespace Puyopuyo.UI
 
         public bool IsDangerRotateLeft()
         {
-            return skeltonColliderCollection.HasCollisionAtLowerLeft();
+            return skeltonColliderCollection.HasCollisionAtLowerLeft() || !skeltonColliderCollection.CanToDown();
         }
 
         public bool IsDangerRotateRight()
         {
-            return skeltonColliderCollection.HasCollisionAtLowerRight();
+            return skeltonColliderCollection.HasCollisionAtLowerRight() || !skeltonColliderCollection.CanToDown();
         }
 
         public void ToLeft()
@@ -128,16 +130,22 @@ namespace Puyopuyo.UI
             skeltonColliderCollection.ToCancelTouching();
         }
 
+        public void Stop()
+        {
+            puyo.Stop();
+            skeltonColliderCollection.Stop();
+        }
+
+        public void Restart()
+        {
+            puyo.Restart();
+            skeltonColliderCollection.Restart();
+        }
+
         public void ToFall()
         {
             puyo.ToFall();
             skeltonColliderCollection.ToFall();
-        }
-
-        public void ResetFallTime()
-        {
-            puyo.ResetFallTime();
-            skeltonColliderCollection.ResetFallTime();
         }
 
         public void ToJustStay()
@@ -161,6 +169,12 @@ namespace Puyopuyo.UI
         {
             puyo.ForceMove(position);
             skeltonColliderCollection.ForceMove(position);
+        }
+
+        public void ForceChangeState()
+        {
+            puyo.ForceChangeState();
+            skeltonColliderCollection.ForceChangeState();
         }
 
         public void Dispose()

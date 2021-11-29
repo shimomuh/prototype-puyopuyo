@@ -99,13 +99,34 @@ namespace Puyopuyo.Application {
                     // 処理が複雑化するようなら違うソリューションで解決するのはアリ
                     if (controller.IsDangerRotateLeft())
                     {
-                        controller.ResetFallTime();
-                        follower.ResetFallTime();
+                        controller.Stop();
+                        follower.Stop();
+                    }
+                }
+                if (rotateDirection == Domain.PuyoRotation.ROTATE_RIGHT) {
+                    if (!controller.CanToLeft()) { return; }
+                    // 回転と自由落下が組み合わさって食い込まないような処置
+                    // 処理が複雑化するようなら違うソリューションで解決するのはアリ
+                    if (controller.IsDangerRotateLeft())
+                    {
+                        controller.Stop();
+                        follower.Stop();
                     }
                 }
             }
             if (followerNextPosition == Domain.PuyoRotation.RIGHT)
             {
+                if (rotateDirection == Domain.PuyoRotation.ROTATE_LEFT)
+                {
+                    if (!controller.CanToRight()) { return; }
+                    // 回転と自由落下が組み合わさって食い込まないような処置
+                    // 処理が複雑化するようなら違うソリューションで解決するのはアリ
+                    if (controller.IsDangerRotateRight())
+                    {
+                        controller.Stop();
+                        follower.Stop();
+                    }
+                }
                 if (rotateDirection == Domain.PuyoRotation.ROTATE_RIGHT)
                 {
                     if (!controller.CanToRight()) { return; }
@@ -113,8 +134,8 @@ namespace Puyopuyo.Application {
                     // 処理が複雑化するようなら違うソリューションで解決するのはアリ
                     if (controller.IsDangerRotateRight())
                     {
-                        controller.ResetFallTime();
-                        follower.ResetFallTime();
+                        controller.Stop();
+                        follower.Stop();
                     }
                 }
             }
@@ -124,8 +145,8 @@ namespace Puyopuyo.Application {
                     // 競り上がりの処理
                     if (controller.IsDangerRotateLeft())
                     {
-                        controller.ResetFallTime();
-                        follower.ResetFallTime();
+                        controller.Stop();
+                        follower.Stop();
                         var y = controller.HeightBetweenClosestPoint();
                         controller.ForceMove(controller.Puyo.GameObject.transform.position + new Vector3(0, y, 0));
                     }
@@ -135,8 +156,8 @@ namespace Puyopuyo.Application {
                     // 競り上がりの処理
                     if (controller.IsDangerRotateRight())
                     {
-                        controller.ResetFallTime();
-                        follower.ResetFallTime();
+                        controller.Stop();
+                        follower.Stop();
                         var y = controller.HeightBetweenClosestPoint();
                         controller.ForceMove(controller.Puyo.GameObject.transform.position + new Vector3(0, y, 0));
                     }
@@ -167,6 +188,10 @@ namespace Puyopuyo.Application {
             followerNextPosition = null;
             controller.Puyo.Rigidbody.isKinematic = false;
             follower.Puyo.Rigidbody.isKinematic = false;
+            controller.Restart();
+            follower.Restart();
+            controller.ForceChangeState();
+            follower.ForceChangeState();
         }
 
         private void PropergateTouchEvent()

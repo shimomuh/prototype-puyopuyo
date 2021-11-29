@@ -14,15 +14,17 @@ namespace Puyopuyo.UI {
         void ToDown();
         void ForceMove(Vector3 position);
         void LerpRotate(Vector3 position);
+        void Stop();
+        void Restart();
         void ToFall();
-        void ResetFallTime();
         void ToJustTouch();
         void ToCancelTouching();
         void TryToKeepTouching();
         void ToJustStay();
         void ToStay();
-        float HeightBetweenClosestPoint();
         void Dispose();
+        float HeightBetweenClosestPoint();
+        void ForceChangeState();
     }
     public class SkeltonColliderCollection : ISkeltonColliderCollection
     {
@@ -150,11 +152,19 @@ namespace Puyopuyo.UI {
             }
         }
 
-        public void ResetFallTime()
+        public void Stop()
         {
             foreach (var kvp in skeltonColliders)
             {
-                kvp.Value.ResetFallTime();
+                kvp.Value.Stop();
+            }
+        }
+
+        public void Restart()
+        {
+            foreach (var kvp in skeltonColliders)
+            {
+                kvp.Value.Restart();
             }
         }
 
@@ -207,6 +217,14 @@ namespace Puyopuyo.UI {
                 return kvp.Value.HeightBetweenClosestPoint();
             }
             return 0;
+        }
+
+        public void ForceChangeState()
+        {
+            foreach (var kvp in skeltonColliders)
+            {
+                kvp.Value.ForceChangeState();
+            }
         }
 
         public void Dispose()
