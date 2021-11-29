@@ -30,6 +30,7 @@ namespace Puyopuyo.UI
         void ToStay();
         float HeightBetweenClosestPoint();
         void ForceMove(Vector3 position);
+        void ForceChangeState();
         void Dispose();
     }
 
@@ -168,6 +169,12 @@ namespace Puyopuyo.UI
         {
             puyo.ForceMove(position);
             skeltonColliderCollection.ForceMove(position);
+        }
+
+        public void ForceChangeState()
+        {
+            puyo.ForceChangeState();
+            skeltonColliderCollection.ForceChangeState();
         }
 
         public void Dispose()

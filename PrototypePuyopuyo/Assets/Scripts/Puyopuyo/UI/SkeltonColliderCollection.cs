@@ -22,8 +22,9 @@ namespace Puyopuyo.UI {
         void TryToKeepTouching();
         void ToJustStay();
         void ToStay();
-        float HeightBetweenClosestPoint();
         void Dispose();
+        float HeightBetweenClosestPoint();
+        void ForceChangeState();
     }
     public class SkeltonColliderCollection : ISkeltonColliderCollection
     {
@@ -216,6 +217,14 @@ namespace Puyopuyo.UI {
                 return kvp.Value.HeightBetweenClosestPoint();
             }
             return 0;
+        }
+
+        public void ForceChangeState()
+        {
+            foreach (var kvp in skeltonColliders)
+            {
+                kvp.Value.ForceChangeState();
+            }
         }
 
         public void Dispose()

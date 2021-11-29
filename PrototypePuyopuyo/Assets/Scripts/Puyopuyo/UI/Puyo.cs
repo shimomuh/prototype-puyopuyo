@@ -24,6 +24,7 @@ namespace Puyopuyo.UI {
         void ToRight();
         void ToDown();
         void ForceMove(Vector3 position);
+        void ForceChangeState();
     }
     public class Puyo : MonoBehaviour, IPuyo
     {
@@ -274,6 +275,29 @@ namespace Puyopuyo.UI {
             isFreeFall = true;
             moveFallAmount = -0.1f;
             puyoBodyClock.NotifyBeginToFreeFall();
+        }
+
+        /// <summary>
+        /// 強制的に Raycast を使って状態を変化させる
+        /// isKinematic = true にして回転したあとに false にした場合などは
+        /// OnCollisionEnter や OnCollisionExit が実行されないのでその救済措置
+        /// </summary>
+        public void ForceChangeState()
+        {
+            var hasCollision = Physics.Raycast(transform.position, Vector3.down, 0.4f);
+            if (hasCollision) {
+                if (State.IsFalling) {
+                    ToJustTouch();
+                    TryToKeepTouching();
+                    DoTouchAnimation();
+                    return;
+                }
+                return;
+            }
+            if (State.IsTouching)
+            {
+                ToCancelTouching();
+            }
         }
     }
 }

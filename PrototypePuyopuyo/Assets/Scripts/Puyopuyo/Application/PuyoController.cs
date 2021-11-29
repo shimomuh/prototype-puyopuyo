@@ -190,6 +190,8 @@ namespace Puyopuyo.Application {
             follower.Puyo.Rigidbody.isKinematic = false;
             controller.Restart();
             follower.Restart();
+            controller.ForceChangeState();
+            follower.ForceChangeState();
         }
 
         private void PropergateTouchEvent()
