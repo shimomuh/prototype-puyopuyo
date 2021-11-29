@@ -273,7 +273,7 @@ namespace Puyopuyo.UI {
         {
             State.ToFalling();
             isFreeFall = true;
-            moveFallAmount = -0.1f;
+            moveFallAmount = -0.2f;
             puyoBodyClock.NotifyBeginToFreeFall();
         }
 

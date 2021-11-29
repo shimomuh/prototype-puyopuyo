@@ -94,7 +94,12 @@ namespace Puyopuyo.Application {
             {
                 if (rotateDirection == Domain.PuyoRotation.ROTATE_LEFT)
                 {
-                    if (!controller.CanToLeft()) { return; }
+                    if (!controller.CanToLeft()) {
+                        if (!controller.CanToRight()) { return; }
+                        controller.Stop();
+                        follower.Stop();
+                        controller.ForceMove(controller.Puyo.GameObject.transform.position + new Vector3(1, 0, 0));
+                    }
                     // 回転と自由落下が組み合わさって食い込まないような処置
                     // 処理が複雑化するようなら違うソリューションで解決するのはアリ
                     if (controller.IsDangerRotateLeft())
@@ -104,7 +109,12 @@ namespace Puyopuyo.Application {
                     }
                 }
                 if (rotateDirection == Domain.PuyoRotation.ROTATE_RIGHT) {
-                    if (!controller.CanToLeft()) { return; }
+                    if (!controller.CanToLeft()) {
+                        if (!controller.CanToRight()) { return; }
+                        controller.Stop();
+                        follower.Stop();
+                        controller.ForceMove(controller.Puyo.GameObject.transform.position + new Vector3(1, 0, 0));
+                    }
                     // 回転と自由落下が組み合わさって食い込まないような処置
                     // 処理が複雑化するようなら違うソリューションで解決するのはアリ
                     if (controller.IsDangerRotateLeft())
@@ -118,7 +128,13 @@ namespace Puyopuyo.Application {
             {
                 if (rotateDirection == Domain.PuyoRotation.ROTATE_LEFT)
                 {
-                    if (!controller.CanToRight()) { return; }
+                    if (!controller.CanToRight())
+                    {
+                        if (!controller.CanToLeft()) { return; }
+                        controller.Stop();
+                        follower.Stop();
+                        controller.ForceMove(controller.Puyo.GameObject.transform.position + new Vector3(-1, 0, 0));
+                    }
                     // 回転と自由落下が組み合わさって食い込まないような処置
                     // 処理が複雑化するようなら違うソリューションで解決するのはアリ
                     if (controller.IsDangerRotateRight())
@@ -129,7 +145,12 @@ namespace Puyopuyo.Application {
                 }
                 if (rotateDirection == Domain.PuyoRotation.ROTATE_RIGHT)
                 {
-                    if (!controller.CanToRight()) { return; }
+                    if (!controller.CanToRight()) {
+                        if (!controller.CanToLeft()) { return; }
+                        controller.Stop();
+                        follower.Stop();
+                        controller.ForceMove(controller.Puyo.GameObject.transform.position + new Vector3(-1, 0, 0));
+                    }
                     // 回転と自由落下が組み合わさって食い込まないような処置
                     // 処理が複雑化するようなら違うソリューションで解決するのはアリ
                     if (controller.IsDangerRotateRight())
