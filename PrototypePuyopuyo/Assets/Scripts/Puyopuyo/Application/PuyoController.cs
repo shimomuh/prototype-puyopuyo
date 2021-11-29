@@ -103,9 +103,30 @@ namespace Puyopuyo.Application {
                         follower.Stop();
                     }
                 }
+                if (rotateDirection == Domain.PuyoRotation.ROTATE_RIGHT) {
+                    if (!controller.CanToLeft()) { return; }
+                    // 回転と自由落下が組み合わさって食い込まないような処置
+                    // 処理が複雑化するようなら違うソリューションで解決するのはアリ
+                    if (controller.IsDangerRotateLeft())
+                    {
+                        controller.Stop();
+                        follower.Stop();
+                    }
+                }
             }
             if (followerNextPosition == Domain.PuyoRotation.RIGHT)
             {
+                if (rotateDirection == Domain.PuyoRotation.ROTATE_LEFT)
+                {
+                    if (!controller.CanToRight()) { return; }
+                    // 回転と自由落下が組み合わさって食い込まないような処置
+                    // 処理が複雑化するようなら違うソリューションで解決するのはアリ
+                    if (controller.IsDangerRotateRight())
+                    {
+                        controller.Stop();
+                        follower.Stop();
+                    }
+                }
                 if (rotateDirection == Domain.PuyoRotation.ROTATE_RIGHT)
                 {
                     if (!controller.CanToRight()) { return; }
