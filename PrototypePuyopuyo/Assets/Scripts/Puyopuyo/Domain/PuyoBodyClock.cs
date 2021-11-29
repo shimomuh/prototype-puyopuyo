@@ -10,6 +10,8 @@ namespace Puyopuyo.Domain {
         void NotifyFinishFallAction();
         void NotifyFinishStayAction();
         void NofityFinishiFreeFallAction();
+        void Stop();
+        void Restart();
     }
     public class PuyoBodyClock : IPuyoBodyClock
     {
@@ -70,6 +72,18 @@ namespace Puyopuyo.Domain {
         public void NofityFinishiFreeFallAction()
         {
             fallClock.ReturnShippingState();
+        }
+
+        public void Stop()
+        {
+            fallClock.Battery.Remove();
+            touchClock.Battery.Remove();
+        }
+
+        public void Restart()
+        {
+            fallClock.Battery.Insert();
+            touchClock.Battery.Insert();
         }
     }
 }

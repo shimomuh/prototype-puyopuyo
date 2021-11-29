@@ -14,8 +14,9 @@ namespace Puyopuyo.UI {
         void ToDown();
         void ForceMove(Vector3 position);
         void LerpRotate(Vector3 position);
+        void Stop();
+        void Restart();
         void ToFall();
-        void ResetFallTime();
         void ToJustTouch();
         void ToCancelTouching();
         void TryToKeepTouching();
@@ -150,11 +151,19 @@ namespace Puyopuyo.UI {
             }
         }
 
-        public void ResetFallTime()
+        public void Stop()
         {
             foreach (var kvp in skeltonColliders)
             {
-                kvp.Value.ResetFallTime();
+                kvp.Value.Stop();
+            }
+        }
+
+        public void Restart()
+        {
+            foreach (var kvp in skeltonColliders)
+            {
+                kvp.Value.Restart();
             }
         }
 

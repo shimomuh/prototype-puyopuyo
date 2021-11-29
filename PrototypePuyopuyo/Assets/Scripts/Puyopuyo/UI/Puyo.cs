@@ -10,8 +10,9 @@ namespace Puyopuyo.UI {
         public IPuyo Partner { get; }
         Rigidbody Rigidbody { get; }
         void RecognizePartner(IPuyo partner);
+        void Stop();
+        void Restart();
         void ToFall();
-        void ResetFallTime();
         void ToJustStay();
         void ToStay();
         void ToJustTouch();
@@ -86,15 +87,20 @@ namespace Puyopuyo.UI {
             ToJustStay();
         }
 
+        public void Stop()
+        {
+            puyoBodyClock.Stop();
+        }
+
+        public void Restart()
+        {
+            puyoBodyClock.Restart();
+        }
+
         public void ToFall()
         {
             if (State.IsFalling) { return; }
             State.ToFalling();
-            puyoBodyClock.NotifyBeginToFall();
-        }
-
-        public void ResetFallTime()
-        {
             puyoBodyClock.NotifyBeginToFall();
         }
 
