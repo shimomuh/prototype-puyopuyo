@@ -21,6 +21,7 @@ namespace Puyopuyo.Application {
             this.follower = follower;
             controller.RecognizePartner(follower);
             follower.RecognizePartner(controller);
+            controller.Puyo.GameObject.layer = LayerMask.NameToLayer("Outline");
         }
         
         public void Update()
@@ -279,6 +280,7 @@ namespace Puyopuyo.Application {
                 follower.ToJustStay();
                 controller.ToStay();
                 follower.ToStay();
+                controller.Puyo.GameObject.layer = LayerMask.NameToLayer("Default");
                 DisposeObservables();
             }
         }
