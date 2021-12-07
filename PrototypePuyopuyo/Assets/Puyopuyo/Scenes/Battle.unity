@@ -555,7 +555,7 @@ GameObject:
   - component: {fileID: 520259597}
   m_Layer: 0
   m_Name: Field
-  m_TagString: Untagged
+  m_TagString: Field
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1281,7 +1281,7 @@ GameObject:
   - component: {fileID: 1631743791}
   m_Layer: 0
   m_Name: Frame_R
-  m_TagString: Undefined
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 2147483647
@@ -1456,7 +1456,7 @@ GameObject:
   - component: {fileID: 1734104867}
   m_Layer: 0
   m_Name: Frame_L
-  m_TagString: Wall
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 2147483647

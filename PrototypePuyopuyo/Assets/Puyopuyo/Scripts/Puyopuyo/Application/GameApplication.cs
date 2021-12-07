@@ -10,6 +10,7 @@ namespace Puyopuyo.Application {
             MakeSingletonMonoBehavoiur("PuyoGenerator");
             MakeSingletonMonoBehavoiur("PuyopuyoGenerator");
             MakeSingletonMonoBehavoiur("PuyoController");
+            MakeSingletonMonoBehavoiur("PuyoChainController");
             MakeSingletonMonoBehavoiur("SkeltonColliderCollectionGenerator");
             MakeSingletonMonoBehavoiur("SkeltonColliderGenerator");
         }

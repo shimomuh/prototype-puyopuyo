@@ -168,13 +168,12 @@ namespace Puyopuyo.UI {
 
         private GameObject Generate(Vector3 offset)
         {
-            GameObject puyoSkelton = Resources.Load<GameObject>("Prefabs/Puyo");
+            GameObject puyoSkelton = Resources.Load<GameObject>("Prefabs/Pop");
             GameObject puyoObj = Instantiate(puyoSkelton);
             puyoObj.name = puyoObj.name.Replace("(Clone)", "");
             puyoObj.transform.SetParent(transform);
             puyoObj.transform.position = transform.position + offset;
             puyoObj.transform.localScale = new Vector3(0f, 0f, 0f);
-            puyoObj.GetComponent<Collider>().enabled = false;
             return puyoObj;
         }
 
@@ -187,11 +186,11 @@ namespace Puyopuyo.UI {
             collider.enabled = false;
             // Lerp でやりたいけど、もっというとアニメーターでやりたいから一旦仮置き
             transform.localScale = new Vector3(1.1f, 1.1f, 1.1f);
-            yield return new WaitForSeconds(0.1f);
+            yield return new WaitForSeconds(0.01f);
             transform.localScale = new Vector3(1.2f, 1.2f, 1.2f);
-            yield return new WaitForSeconds(0.1f);
+            yield return new WaitForSeconds(0.01f);
             transform.localScale = new Vector3(1.3f, 1.3f, 1.3f);
-            yield return new WaitForSeconds(0.1f);
+            yield return new WaitForSeconds(0.01f);
             transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
             yield return new WaitForSeconds(0.1f);
             pop1.transform.localScale = new Vector3(1f, 1f, 1f);
@@ -217,6 +216,7 @@ namespace Puyopuyo.UI {
             transform.localScale = new Vector3(0f, 0f, 0f);
             collider.enabled = true;
             yield return null;
+            Destroy(this.GameObject);
         }
 
         protected virtual void OnCollisionEnter(Collision collision)

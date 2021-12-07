@@ -281,6 +281,7 @@ namespace Puyopuyo.Application {
                 controller.ToStay();
                 follower.ToStay();
                 controller.Puyo.GameObject.layer = LayerMask.NameToLayer("Default");
+                PuyoChainController.Instance.Check();
                 DisposeObservables();
             }
         }
