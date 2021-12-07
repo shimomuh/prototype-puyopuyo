@@ -20,6 +20,7 @@ namespace Puyopuyo.UI {
         void TryToKeepTouching();
         bool IsVerticalWithPartner();
         void DoTouchAnimation();
+        void DoPopAnimation();
         void ToLeft();
         void ToRight();
         void ToDown();
@@ -165,6 +166,59 @@ namespace Puyopuyo.UI {
             yield return null;
         }
 
+        private GameObject Generate(Vector3 offset)
+        {
+            GameObject puyoSkelton = Resources.Load<GameObject>("Prefabs/Puyo");
+            GameObject puyoObj = Instantiate(puyoSkelton);
+            puyoObj.name = puyoObj.name.Replace("(Clone)", "");
+            puyoObj.transform.SetParent(transform);
+            puyoObj.transform.position = transform.position + offset;
+            puyoObj.transform.localScale = new Vector3(0f, 0f, 0f);
+            puyoObj.GetComponent<Collider>().enabled = false;
+            return puyoObj;
+        }
+
+        public IEnumerator PopAnimation()
+        {
+            var pop1 = Generate(new Vector3(0.2f, 0.4f, 0f));
+            var pop2 = Generate(new Vector3(0.4f, 0.2f, 0f));
+            var pop3 = Generate(new Vector3(-0.3f, 0.3f, 0f));
+            var pop4 = Generate(new Vector3(-0.5f, 0.1f, 0f));
+            collider.enabled = false;
+            // Lerp でやりたいけど、もっというとアニメーターでやりたいから一旦仮置き
+            transform.localScale = new Vector3(1.1f, 1.1f, 1.1f);
+            yield return new WaitForSeconds(0.1f);
+            transform.localScale = new Vector3(1.2f, 1.2f, 1.2f);
+            yield return new WaitForSeconds(0.1f);
+            transform.localScale = new Vector3(1.3f, 1.3f, 1.3f);
+            yield return new WaitForSeconds(0.1f);
+            transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
+            yield return new WaitForSeconds(0.1f);
+            pop1.transform.localScale = new Vector3(1f, 1f, 1f);
+            pop2.transform.localScale = new Vector3(1f, 1f, 1f);
+            pop3.transform.localScale = new Vector3(1f, 1f, 1f);
+            pop4.transform.localScale = new Vector3(1f, 1f, 1f);
+            transform.localScale = new Vector3(0.8f, 0.8f, 0.8f);
+            yield return new WaitForSeconds(0.1f);
+            pop1.transform.Translate(0.4f, 0.8f, 0f);
+            pop2.transform.Translate(0.8f, 0.4f, 0f);
+            pop3.transform.Translate(-0.7f, 0.5f, 0f);
+            pop4.transform.Translate(-0.9f, 0.3f, 0f);
+            transform.localScale = new Vector3(0.4f, 0.4f, 0.4f);
+            yield return new WaitForSeconds(0.1f);
+            pop1.transform.Translate(0.2f, 1.2f, 0f);
+            pop2.transform.Translate(1.2f, 0.2f, 0f);
+            pop3.transform.Translate(-1.1f, 0.3f, 0f);
+            pop4.transform.Translate(-1.3f, 0.1f, 0f);
+            transform.localScale = new Vector3(0.2f, 0.2f, 0.2f);
+            yield return new WaitForSeconds(0.1f);
+            pop1.transform.localScale = new Vector3(0f, 0f, 0f);
+            pop2.transform.localScale = new Vector3(0f, 0f, 0f);
+            transform.localScale = new Vector3(0f, 0f, 0f);
+            collider.enabled = true;
+            yield return null;
+        }
+
         protected virtual void OnCollisionEnter(Collision collision)
         {
             var hitPosition = GetHitPoint(collision);
@@ -236,6 +290,11 @@ namespace Puyopuyo.UI {
         public void DoTouchAnimation()
         {
             StartCoroutine(TouchAnimation());
+        }
+
+        public void DoPopAnimation()
+        {
+            StartCoroutine(PopAnimation());
         }
 
         public void TryToKeepTouching()
