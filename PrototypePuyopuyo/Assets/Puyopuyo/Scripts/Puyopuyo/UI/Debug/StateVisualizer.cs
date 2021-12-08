@@ -15,8 +15,8 @@ namespace Puyopuyo.UI.Debug {
         }
 
         private void Update() {
-            if (field.transform.childCount == 0) { return; }
             UpdateDeletedObject();
+            if (field.transform.childCount == 0) { return; }
             AddPuyoHUDDict();
             UpdateHUDPosition();
             UpdateHUDText();
