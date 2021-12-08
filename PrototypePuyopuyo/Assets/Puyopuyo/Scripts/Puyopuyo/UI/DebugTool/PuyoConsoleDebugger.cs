@@ -2,7 +2,7 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-namespace Puyopuyo.UI.Debug
+namespace Puyopuyo.UI.DebugTool
 {
     public class PuyoConsoleDebugger : MonoBehaviour
     {
@@ -33,7 +33,6 @@ namespace Puyopuyo.UI.Debug
                 if (puyo == null) { return; }
                 UnityEngine.Debug.Log($"position : {puyo.GameObject.transform.position}");
                 UnityEngine.Debug.Log($"state : {puyo.State}");
-                UnityEngine.Debug.Log($"IsGrounded? : {puyo.IsGrounded}");
                 UnityEngine.Debug.Log($"isKinematic? : {puyo.Rigidbody.isKinematic}");
             }
         }

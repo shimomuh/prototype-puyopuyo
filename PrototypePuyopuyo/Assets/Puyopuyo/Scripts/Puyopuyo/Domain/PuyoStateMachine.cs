@@ -7,13 +7,13 @@ namespace Puyopuyo.Domain {
         bool IsTouching { get; }
         bool IsJustStay { get; }
         bool IsStaying { get; }
-        bool IsCancelTouching { get; }
+        bool IsCanceling { get; }
         void ToFalling();
         void ToJustTouch();
         void ToTouching();
         void ToJustStay();
         void ToStaying();
-        void ToCancelTouching();
+        void ToCanceling();
     }
     public class PuyoStateMachine : IPuyoStateMachine {
         public enum State {
@@ -22,7 +22,7 @@ namespace Puyopuyo.Domain {
             Touching,
             JustStay,
             Staying,
-            CancelTouching
+            Canceling
         }
         private State currentState;
         public bool IsFalling => currentState == State.Falling;
@@ -30,7 +30,7 @@ namespace Puyopuyo.Domain {
         public bool IsTouching => currentState == State.Touching;
         public bool IsJustStay => currentState == State.JustStay;
         public bool IsStaying => currentState == State.Staying;
-        public bool IsCancelTouching => currentState == State.CancelTouching;
+        public bool IsCanceling => currentState == State.Canceling;
 
         public PuyoStateMachine ()
         {
@@ -52,8 +52,9 @@ namespace Puyopuyo.Domain {
 
         public void ToTouching()
         {
-            if (!IsJustTouch) {
-                throw new Exception("「ちょうど触れた状態」でないと「触れている状態」にいきなり遷移はできません！");
+            if (!(IsFalling || IsJustTouch))
+            {
+                throw new Exception("「落ちている/ちょうど触れた状態」でないと「触れている状態」にいきなり遷移はできません！");
             }
             currentState = State.Touching;
         }
@@ -68,19 +69,21 @@ namespace Puyopuyo.Domain {
 
         public void ToStaying()
         {
-            // IsFalling は FreeFall 時
-            if (!(IsJustStay || IsFalling)) {
-                throw new Exception("「ちょうど留まっている/落ちている状態」でないと「留まっている状態」にいきなり遷移はできません！");
+            // IsJustTouch は FreeFall 時
+            if (!(IsJustStay || IsJustTouch))
+            {
+                throw new Exception("「ちょうど留まっている/ちょうど触れた状態」でないと「留まっている状態」にいきなり遷移はできません！");
             }
             currentState = State.Staying;
         }
 
-        public void ToCancelTouching()
+        public void ToCanceling()
         {
-            if (!IsTouching) {
-                throw new Exception("「触れている状態」でないと「触れているをキャンセルする状態」にいきなり遷移はできません！");
+            if (!(IsTouching || IsFalling))
+            {
+                throw new Exception("「触れている/落ちている状態」でないと「触れているをキャンセルする状態」にいきなり遷移はできません！");
             }
-            currentState = State.CancelTouching;
+            currentState = State.Canceling;
         }
 
         public override string ToString()

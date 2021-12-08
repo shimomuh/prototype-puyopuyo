@@ -2,7 +2,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace Puyopuyo.UI.Debug {
+namespace Puyopuyo.UI.DebugTool
+{
     public class StateVisualizer : MonoBehaviour
     {
         [SerializeField] private GameObject field;

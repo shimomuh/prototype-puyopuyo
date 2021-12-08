@@ -3,7 +3,8 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-namespace Puyopuyo.UI.Debug {
+namespace Puyopuyo.UI.DebugTool
+{
     public class PuyopuyoFactory : MonoBehaviour
     {
         private float INITIAL_Y_POSITION = 12f;

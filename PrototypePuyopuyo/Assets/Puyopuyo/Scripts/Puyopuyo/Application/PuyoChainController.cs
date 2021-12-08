@@ -49,7 +49,6 @@ namespace Puyopuyo.Application
             foreach (Transform puyo in field)
             {
                 if (puyo.GetComponent<IPuyo>() == null) { continue; }
-                if (puyo.GetComponent<SkeltonCollider>() != null) { continue; }
                 if (!puyo.GetComponent<IPuyo>().State.IsStaying) { return false; }
             }
             return true;
@@ -62,7 +61,6 @@ namespace Puyopuyo.Application
             foreach (Transform puyo in field)
             {
                 if (puyo.GetComponent<IPuyo>() == null) { continue; }
-                if (puyo.GetComponent<SkeltonCollider>() != null) { continue; }
                 puyoMatrix[(int)puyo.transform.position.y][(int)puyo.transform.position.x + OFFSET_X] = puyo.GetComponent<IPuyo>();
             }
             

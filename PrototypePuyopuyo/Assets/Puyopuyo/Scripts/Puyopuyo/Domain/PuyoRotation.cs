@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using static Puyopuyo.Domain.PuyoPosition;
 
 namespace Puyopuyo.Domain
 {
@@ -17,11 +18,6 @@ namespace Puyopuyo.Domain
     {
         public static readonly Direction ROTATE_RIGHT = new Direction(1);
         public static readonly Direction ROTATE_LEFT = new Direction(-1);
-
-        public static readonly Position UPPER = new Position(1);
-        public static readonly Position RIGHT = new Position(2);
-        public static readonly Position LOWER = new Position(3);
-        public static readonly Position LEFT = new Position(4);
 
         private static readonly List<Position> positions = new List<Position>() { UPPER, RIGHT, LOWER, LEFT };
 
@@ -70,26 +66,6 @@ namespace Puyopuyo.Domain
             };
 
             public Direction(int value)
-            {
-                Value = value;
-            }
-
-            public int Value { get; }
-
-            public override string ToString() => ValueNameKvp[Value];
-        }
-
-        public class Position
-        {
-            private Dictionary<int, string> ValueNameKvp = new Dictionary<int, string>()
-            {
-                { 1,  "UPPER" },
-                { 2, "RIGHT" },
-                { 3, "LOWER" },
-                { 4, "LEFT" }
-            };
-
-            public Position(int value)
             {
                 Value = value;
             }

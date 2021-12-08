@@ -3,37 +3,45 @@ using UnityEngine;
 
 namespace Puyopuyo.Application {
     /// <summary>
-    /// パートナーやスケルトンとの同期はこの子が行う
+    /// ぷよの操作を扱う
+    /// パートナーの同期はこの子が行う
     /// </summary>
     public class PuyoController : SingletonMonoBehaviour<PuyoController>
     {
-        UI.IPuyoWithSkeltonColliderCollection controller;
-        UI.IPuyoWithSkeltonColliderCollection follower;
+        UI.IPuyo controller;
+        UI.IPuyo follower;
         private bool isRotating;
-        private Domain.PuyoRotation.Position followerOriginalPosition;
-        private Domain.PuyoRotation.Position followerNextPosition;
+        private Domain.PuyoPosition.Position followerOriginalPosition;
+        private Domain.PuyoPosition.Position followerNextPosition;
         private float rotateSpeed = 10.0f;
         private float rotateProgress = 0.0f;
+        private bool occuredInputEventInThisFrame;
 
-        public void Observe(UI.IPuyoWithSkeltonColliderCollection controller, UI.IPuyoWithSkeltonColliderCollection follower)
+        public void Observe(UI.IPuyo controller, UI.IPuyo follower)
         {
             this.controller = controller;
             this.follower = follower;
-            controller.RecognizePartner(follower);
-            follower.RecognizePartner(controller);
-            controller.Puyo.AdaptRandomMaterial();
-            follower.Puyo.AdaptRandomMaterial();
-            controller.Puyo.GameObject.layer = LayerMask.NameToLayer("Outline");
+            controller.UnderControllWith(follower);
+            follower.UnderControllWith(controller);
+            controller.AdaptRandomMaterial();
+            follower.AdaptRandomMaterial();
+            controller.GameObject.layer = LayerMask.NameToLayer("Outline");
         }
         
         public void Update()
         {
             if (controller == null || follower == null) { return; }
             CheckInputEvent();
+            if (!occuredInputEventInThisFrame)
+            {
+                controller.UpdatePerFrame();
+                follower.UpdatePerFrame();
+            }
             UpdateRotate();
             PropergateTouchEvent();
             PropergateCancelTouchEvent();
             PropergateStayEvent();
+            occuredInputEventInThisFrame = false;
         }
 
         private void CheckInputEvent()
@@ -41,31 +49,36 @@ namespace Puyopuyo.Application {
             // Input.GetAxis は後で考える
             if (Input.GetKeyDown(KeyCode.LeftArrow)) {
                 if (!CanSlide()) { return; }
-                if (!controller.CanToLeft()) { return; }
-                if (!follower.CanToLeft()) { return; }
+                if (!controller.CanMoveToLeft()) { return; }
+                if (!follower.CanMoveToLeft()) { return; }
+                occuredInputEventInThisFrame = true;
                 controller.ToLeft();
                 follower.ToLeft();
             }
 
             if (Input.GetKeyDown(KeyCode.RightArrow)) {
                 if (!CanSlide()) { return; }
-                if (!controller.CanToRight()) { return; }
-                if (!follower.CanToRight()) { return; }
+                if (!controller.CanMoveToRight()) { return; }
+                if (!follower.CanMoveToRight()) { return; }
+                occuredInputEventInThisFrame = true;
                 controller.ToRight();
                 follower.ToRight();
             }
 
             if (Input.GetKeyDown(KeyCode.DownArrow)) {
                 if (!CanDown()) { return; }
+                occuredInputEventInThisFrame = true;
                 controller.ToDown();
                 follower.ToDown();
             }
             // 左回り
             if (Input.GetKeyDown(KeyCode.Space)) {
+                occuredInputEventInThisFrame = true;
                 RotateTo(Domain.PuyoRotation.ROTATE_LEFT);
             }
             // 右回り
             if (Input.GetKeyDown(KeyCode.Return)) {
+                occuredInputEventInThisFrame = true;
                 RotateTo(Domain.PuyoRotation.ROTATE_RIGHT);
             }
         }
@@ -78,130 +91,107 @@ namespace Puyopuyo.Application {
 
         private bool CanDown()
         {
-            return controller.IsFalling && follower.IsFalling;
+            return controller.State.IsFalling && follower.State.IsFalling;
         }
 
         private bool CanMoveAboutPuyoState()
         {
-            // どちらか一方だけをみればいいはず
-            return controller.IsFalling || controller.IsTouching;
+            return (controller.State.IsFalling || controller.State.IsTouching)
+                && (follower.State.IsFalling || follower.State.IsTouching);
         }
 
         private void RotateTo(Domain.PuyoRotation.Direction rotateDirection)
         {
             if (isRotating) { return; }
-            followerOriginalPosition = Domain.PuyoRotation.GetCurrentPosition(controller.Puyo.GameObject.transform.position, follower.Puyo.GameObject.transform.position);
+            followerOriginalPosition = Domain.PuyoRotation.GetCurrentPosition(controller.GameObject.transform.position, follower.GameObject.transform.position);
             followerNextPosition = Domain.PuyoRotation.GetNextPosition(rotateDirection, followerOriginalPosition);
 
-            if (followerNextPosition == Domain.PuyoRotation.LEFT)
+            if (followerNextPosition == Domain.PuyoPosition.LEFT)
             {
                 if (rotateDirection == Domain.PuyoRotation.ROTATE_LEFT)
                 {
-                    if (!controller.CanToLeft()) {
-                        if (!controller.CanToRight()) { return; }
-                        controller.Stop();
-                        follower.Stop();
-                        controller.ForceMove(controller.Puyo.GameObject.transform.position + new Vector3(1, 0, 0));
-                    }
-                    // 回転と自由落下が組み合わさって食い込まないような処置
-                    // 処理が複雑化するようなら違うソリューションで解決するのはアリ
-                    if (controller.IsDangerRotateLeft())
+                    if (!controller.CanMoveToLeft())
                     {
+                        if (!controller.CanMoveToRight()) { return; }
                         controller.Stop();
                         follower.Stop();
+                        controller.ForceToMove(controller.GameObject.transform.position + new Vector3(1, 0, 0));
                     }
                 }
                 if (rotateDirection == Domain.PuyoRotation.ROTATE_RIGHT) {
-                    if (!controller.CanToLeft()) {
-                        if (!controller.CanToRight()) { return; }
-                        controller.Stop();
-                        follower.Stop();
-                        controller.ForceMove(controller.Puyo.GameObject.transform.position + new Vector3(1, 0, 0));
-                    }
-                    // 回転と自由落下が組み合わさって食い込まないような処置
-                    // 処理が複雑化するようなら違うソリューションで解決するのはアリ
-                    if (controller.IsDangerRotateLeft())
+                    if (!controller.CanMoveToLeft())
                     {
+                        if (!controller.CanMoveToRight()) { return; }
                         controller.Stop();
                         follower.Stop();
+                        controller.ForceToMove(controller.GameObject.transform.position + new Vector3(1, 0, 0));
                     }
                 }
             }
-            if (followerNextPosition == Domain.PuyoRotation.RIGHT)
+            if (followerNextPosition == Domain.PuyoPosition.RIGHT)
             {
                 if (rotateDirection == Domain.PuyoRotation.ROTATE_LEFT)
                 {
-                    if (!controller.CanToRight())
+                    if (!controller.CanMoveToRight())
                     {
-                        if (!controller.CanToLeft()) { return; }
+                        if (!controller.CanMoveToLeft()) { return; }
                         controller.Stop();
                         follower.Stop();
-                        controller.ForceMove(controller.Puyo.GameObject.transform.position + new Vector3(-1, 0, 0));
-                    }
-                    // 回転と自由落下が組み合わさって食い込まないような処置
-                    // 処理が複雑化するようなら違うソリューションで解決するのはアリ
-                    if (controller.IsDangerRotateRight())
-                    {
-                        controller.Stop();
-                        follower.Stop();
+                        controller.ForceToMove(controller.GameObject.transform.position + new Vector3(-1, 0, 0));
                     }
                 }
                 if (rotateDirection == Domain.PuyoRotation.ROTATE_RIGHT)
                 {
-                    if (!controller.CanToRight()) {
-                        if (!controller.CanToLeft()) { return; }
-                        controller.Stop();
-                        follower.Stop();
-                        controller.ForceMove(controller.Puyo.GameObject.transform.position + new Vector3(-1, 0, 0));
-                    }
-                    // 回転と自由落下が組み合わさって食い込まないような処置
-                    // 処理が複雑化するようなら違うソリューションで解決するのはアリ
-                    if (controller.IsDangerRotateRight())
+                    if (!controller.CanMoveToRight())
                     {
+                        if (!controller.CanMoveToLeft()) { return; }
                         controller.Stop();
                         follower.Stop();
+                        controller.ForceToMove(controller.GameObject.transform.position + new Vector3(-1, 0, 0));
                     }
                 }
             }
-            if (followerNextPosition == Domain.PuyoRotation.LOWER)
+            if (followerNextPosition == Domain.PuyoPosition.LOWER)
             {
                 if (rotateDirection == Domain.PuyoRotation.ROTATE_LEFT) {
                     // 競り上がりの処理
-                    if (controller.IsDangerRotateLeft())
+                    if (!controller.CanMoveToDown())
                     {
                         controller.Stop();
                         follower.Stop();
-                        var y = controller.HeightBetweenClosestPoint();
-                        controller.ForceMove(controller.Puyo.GameObject.transform.position + new Vector3(0, y, 0));
+                        var y = controller.HeightToGround();
+                        controller.ForceToMove(controller.GameObject.transform.position + new Vector3(0, y, 0));
                     }
                 }
                 else if (rotateDirection == Domain.PuyoRotation.ROTATE_RIGHT)
                 {
                     // 競り上がりの処理
-                    if (controller.IsDangerRotateRight())
+                    if (!controller.CanMoveToDown())
                     {
                         controller.Stop();
                         follower.Stop();
-                        var y = controller.HeightBetweenClosestPoint();
-                        controller.ForceMove(controller.Puyo.GameObject.transform.position + new Vector3(0, y, 0));
+                        var y = controller.HeightToGround();
+                        controller.ForceToMove(controller.GameObject.transform.position + new Vector3(0, y, 0));
                     }
                 }
             }
             // ひとまず回転中、反発はなしにした
-            follower.Puyo.Rigidbody.isKinematic = true;
-            controller.Puyo.Rigidbody.isKinematic = true;
+            follower.Rigidbody.isKinematic = true;
+            controller.Rigidbody.isKinematic = true;
             isRotating = true;
+            controller.ToCanceling();
+            follower.ToCanceling();
 
         }
 
         private void UpdateRotate()
         {
             if (!isRotating) { return; }
-            var startPos = follower.Puyo.GameObject.transform.position;
-            var endPos = Domain.PuyoRotation.GetNextPosition(controller.Puyo.GameObject.transform.position, followerNextPosition);
+            var startPos = follower.GameObject.transform.position;
+            var endPos = Domain.PuyoRotation.GetNextPosition(controller.GameObject.transform.position, followerNextPosition);
             rotateProgress += rotateSpeed * Time.deltaTime;
             if (rotateProgress >= 1f) { rotateProgress = 1f; }
-            follower.LerpRotate(Vector3.Lerp(startPos, endPos, rotateProgress));
+            follower.ForceToMove(Vector3.Lerp(startPos, endPos, rotateProgress));
             if (rotateProgress >= 1f) { FinishToRotate(); }
         }
 
@@ -210,38 +200,31 @@ namespace Puyopuyo.Application {
             rotateProgress = 0f;
             isRotating = false;
             followerNextPosition = null;
-            controller.Puyo.Rigidbody.isKinematic = false;
-            follower.Puyo.Rigidbody.isKinematic = false;
+            controller.Rigidbody.isKinematic = false;
+            follower.Rigidbody.isKinematic = false;
             controller.Restart();
             follower.Restart();
-            controller.ForceChangeState();
-            follower.ForceChangeState();
         }
 
         private void PropergateTouchEvent()
         {
             // 同期
-            if (controller.IsJustTouch && follower.IsFalling)
+            if (controller.State.IsJustTouch && follower.State.IsFalling)
             {
                 controller.ToJustTouch();
                 follower.ToJustTouch();
             }
-            if (follower.IsJustTouch && controller.IsFalling)
+            if (follower.State.IsJustTouch && controller.State.IsFalling)
             {
                 controller.ToJustTouch();
                 follower.ToJustTouch();
             }
-            if (controller.IsJustTouch && follower.IsJustTouch)
+            if (controller.State.IsJustTouch && follower.State.IsJustTouch)
             {
                 controller.ToJustTouch();
                 follower.ToJustTouch();
-                if (controller.Puyo.IsVerticalWithPartner()) {
-                    controller.Puyo.DoTouchAnimation();
-                    follower.Puyo.DoTouchAnimation();
-                } else {
-                    if (controller.Puyo.IsGrounded) { controller.Puyo.DoTouchAnimation(); }
-                    if (follower.Puyo.IsGrounded) { follower.Puyo.DoTouchAnimation(); }
-                }
+                controller.DoTouchAnimation();
+                follower.DoTouchAnimation();
                 controller.TryToKeepTouching();
                 follower.TryToKeepTouching();
             }
@@ -249,18 +232,18 @@ namespace Puyopuyo.Application {
 
         private void PropergateCancelTouchEvent()
         {
-            if (controller.IsTouching && follower.IsCancelTouching) {
-                controller.ToCancelTouching();
-                follower.ToCancelTouching();
+            if (controller.State.IsTouching && follower.State.IsCanceling) {
+                controller.ToCanceling();
+                follower.ToCanceling();
             }
-            if (controller.IsCancelTouching && follower.IsTouching) {
-                controller.ToCancelTouching();
-                follower.ToCancelTouching();
+            if (controller.State.IsCanceling && follower.State.IsTouching) {
+                controller.ToCanceling();
+                follower.ToCanceling();
             }
-            if (controller.IsCancelTouching && follower.IsCancelTouching)
+            if (controller.State.IsCanceling && follower.State.IsCanceling)
             {
-                controller.ToCancelTouching();
-                follower.ToCancelTouching();
+                controller.ToCanceling();
+                follower.ToCanceling();
                 controller.ToFall();
                 follower.ToFall();
             }
@@ -268,29 +251,27 @@ namespace Puyopuyo.Application {
 
         private void PropergateStayEvent()
         {
-            if (controller.IsJustStay && follower.IsTouching) {
+            if (controller.State.IsJustStay && follower.State.IsTouching) {
                 controller.ToJustStay();
                 follower.ToJustStay();
             }
-            if (follower.IsJustStay && controller.IsTouching) {
+            if (follower.State.IsJustStay && controller.State.IsTouching) {
                 controller.ToJustStay();
                 follower.ToJustStay();
             }
-            if (controller.IsJustStay && follower.IsJustStay)
+            if (controller.State.IsJustStay && follower.State.IsJustStay)
             {
                 controller.ToJustStay();
                 follower.ToJustStay();
                 controller.ToStay();
                 follower.ToStay();
-                controller.Puyo.GameObject.layer = LayerMask.NameToLayer("Default");
+                controller.GameObject.layer = LayerMask.NameToLayer("Default");
                 DisposeObservables();
             }
         }
 
         public void DisposeObservables()
         {
-            controller.Dispose();
-            follower.Dispose();
             controller = null;
             follower = null;
         }
