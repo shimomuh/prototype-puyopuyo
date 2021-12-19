@@ -23,8 +23,6 @@ namespace Puyopuyo.Application {
             this.follower = follower;
             controller.UnderControllWith(follower);
             follower.UnderControllWith(controller);
-            controller.AdaptRandomMaterial();
-            follower.AdaptRandomMaterial();
             controller.GameObject.layer = LayerMask.NameToLayer("Outline");
         }
         

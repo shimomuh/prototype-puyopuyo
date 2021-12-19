@@ -34,6 +34,9 @@ namespace Puyopuyo.UI.DebugTool
                 UnityEngine.Debug.Log($"position : {puyo.GameObject.transform.position}");
                 UnityEngine.Debug.Log($"state : {puyo.State}");
                 UnityEngine.Debug.Log($"isKinematic? : {puyo.Rigidbody.isKinematic}");
+                foreach (var dict in puyo.PuyoCollision.Dict) {
+                    UnityEngine.Debug.Log($"colliders: {dict.Key}, {dict.Value}");
+                }
             }
         }
     }

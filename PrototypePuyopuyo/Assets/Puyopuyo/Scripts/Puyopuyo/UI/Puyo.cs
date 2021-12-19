@@ -13,8 +13,9 @@ namespace Puyopuyo.UI {
         public IPuyo Partner { get; }
         Rigidbody Rigidbody { get; }
         int MaterialIndex { get; }
+        Domain.PuyoCollision PuyoCollision { get; }
 
-        void AdaptRandomMaterial();
+        void AdaptMaterial(PuyoMaterial puyoMaterial = PuyoMaterial.Random);
         void UnderControllWith(IPuyo partner);
 
         void UpdatePerFrame();
@@ -42,6 +43,17 @@ namespace Puyopuyo.UI {
 
         float HeightToGround();
     }
+
+    public enum PuyoMaterial
+    {
+        Blue = 0,
+        Green = 1,
+        Purple = 2,
+        Red = 3,
+        Yellow = 4,
+        Random = 99
+    }
+
     public class Puyo : MonoBehaviour, IPuyo
     {
         /// <summary>
@@ -71,10 +83,12 @@ namespace Puyopuyo.UI {
 
         private bool isFreeFall;
         private Domain.PuyoCollision puyoCollision;
+        public Domain.PuyoCollision PuyoCollision => puyoCollision;
 
         [SerializeField]
         private List<Material> materials;
         private Material[] adaptedMaterials;
+        private Material[] noMaterials;
 
         protected void Awake()
         {
@@ -87,9 +101,16 @@ namespace Puyopuyo.UI {
             amountToFall = AMOUNT_TO_FREE_FALL;
         }
 
-        public void AdaptRandomMaterial()
+        public void AdaptMaterial(PuyoMaterial puyoMaterial = PuyoMaterial.Random)
         {
-            MaterialIndex = UnityEngine.Random.Range(0, this.materials.Count);
+            if (puyoMaterial == PuyoMaterial.Random)
+            {
+                MaterialIndex = UnityEngine.Random.Range(0, this.materials.Count);
+            }
+            else {
+                MaterialIndex = (int)puyoMaterial;
+            }
+            noMaterials = new Material[0];
             var materials = GetComponent<Renderer>().materials;
             materials[0] = this.materials[MaterialIndex];
             GetComponent<Renderer>().materials = materials;
@@ -120,6 +141,7 @@ namespace Puyopuyo.UI {
             UpdateBodyClockIfNeeded();
             UpdateCollision();
             ChangeState();
+            UpdateConnect();
         }
 
         /// <summary>
@@ -181,17 +203,19 @@ namespace Puyopuyo.UI {
                 }
                 return;
             }
-            if (State.IsJustStay)
+            if (State.IsJustTouch)
             {
+                TryToKeepTouching();
+                ToJustStay();
                 ToStay();
                 return;
             }
             if (State.IsStaying)
             {
-                if (CanMoveToDown())
-                {
-                    FreeFall();
-                }
+                if (!CanMoveToDown()) { return; }
+                var collider = puyoCollision.GetCollider(Vector3.down);
+                if (collider != null) { return; }
+                FreeFall();
             }
         }
 
@@ -272,8 +296,6 @@ namespace Puyopuyo.UI {
         {
             if (State.IsStaying) { return; }
             State.ToStaying();
-            // 保留。反発を防ぐためにつけてたけどいらなくなるかもしれないので。
-            Rigidbody.isKinematic = false;
             isFreeFall = true;
             amountToFall = AMOUNT_TO_FREE_FALL;
             Partner = null;
@@ -282,59 +304,73 @@ namespace Puyopuyo.UI {
         private void AutoDown()
         {
             if (!State.IsFalling) { return; }
-            transform.Translate(0, amountToFall, 0);
+            ToDown();
         } 
 
+        /// <summary>
+        /// タッチアニメーションが発生したら実体のマテリアルは剥がして Collider だけになる
+        /// 見えている色は子要素の Pop と呼ばれる GameObject に委譲する
+        /// 子要素にするのはぷよを消すアニメーションの中で Destroy した時に一緒に消すため
+        /// TODO: 色は初めっから子要素に持たせて親要素は Collider だけ持つのでよさそう
+        /// </summary>
         public IEnumerator TouchAnimation()
         {
-            collider.enabled = false;
+            GameObject pop;
+            if (transform.Find("Pop") == null)
+            {
+                pop = GeneratePop(new Vector3(0f, 0f, 0f), new Vector3(1f, 1f, 1f));
+            }
+            else {
+                pop = transform.Find("Pop").gameObject;
+            }
+            GetComponent<Renderer>().materials = noMaterials;
             // Lerp でやりたいけど、もっというとアニメーターでやりたいから一旦仮置き
-            transform.localPosition = new Vector3(transform.localPosition.x, transform.localPosition.y - 0.1f, transform.localPosition.z);            
-            transform.localScale = new Vector3(1.1f, 0.9f, 1.1f);
+            pop.transform.localPosition = new Vector3(pop.transform.localPosition.x, pop.transform.localPosition.y - 0.1f, pop.transform.localPosition.z);
+            pop.transform.localScale = new Vector3(1.1f, 0.9f, 1.1f);
             yield return new WaitForSeconds(0.01f);
-            transform.localPosition = new Vector3(transform.localPosition.x, transform.localPosition.y - 0.1f, transform.localPosition.z);
-            transform.localScale = new Vector3(1.2f, 0.8f, 1.1f);
+            pop.transform.localPosition = new Vector3(pop.transform.localPosition.x, pop.transform.localPosition.y - 0.1f, pop.transform.localPosition.z);
+            pop.transform.localScale = new Vector3(1.2f, 0.8f, 1.1f);
             yield return new WaitForSeconds(0.02f);
-            transform.localPosition = new Vector3(transform.localPosition.x, transform.localPosition.y + 0.1f, transform.localPosition.z);            
-            transform.localScale = new Vector3(1.1f, 0.9f, 1.1f);
+            pop.transform.localPosition = new Vector3(pop.transform.localPosition.x, pop.transform.localPosition.y + 0.1f, pop.transform.localPosition.z);
+            pop.transform.localScale = new Vector3(1.1f, 0.9f, 1.1f);
             yield return new WaitForSeconds(0.01f);
-            transform.localPosition = new Vector3(transform.localPosition.x, transform.localPosition.y + 0.1f, transform.localPosition.z);            
-            transform.localScale = new Vector3(1, 1, 1);
+            pop.transform.localPosition = new Vector3(pop.transform.localPosition.x, pop.transform.localPosition.y + 0.1f, pop.transform.localPosition.z);
+            pop.transform.localScale = new Vector3(1, 1, 1);
             yield return new WaitForSeconds(0.01f);
-            transform.localPosition = new Vector3(transform.localPosition.x, transform.localPosition.y - 0.1f, transform.localPosition.z);            
-            transform.localScale = new Vector3(1.1f, 0.9f, 1.1f);
+            pop.transform.localPosition = new Vector3(pop.transform.localPosition.x, pop.transform.localPosition.y - 0.1f, pop.transform.localPosition.z);
+            pop.transform.localScale = new Vector3(1.1f, 0.9f, 1.1f);
             yield return new WaitForSeconds(0.01f);
-            transform.localPosition = new Vector3(transform.localPosition.x, transform.localPosition.y - 0.1f, transform.localPosition.z);
-            transform.localScale = new Vector3(1.2f, 0.8f, 1.2f);
+            pop.transform.localPosition = new Vector3(pop.transform.localPosition.x, pop.transform.localPosition.y - 0.1f, pop.transform.localPosition.z);
+            pop.transform.localScale = new Vector3(1.2f, 0.8f, 1.2f);
             yield return new WaitForSeconds(0.02f);
-            transform.localPosition = new Vector3(transform.localPosition.x, transform.localPosition.y + 0.1f, transform.localPosition.z);            
-            transform.localScale = new Vector3(1.1f, 0.9f, 1.1f);
+            pop.transform.localPosition = new Vector3(pop.transform.localPosition.x, pop.transform.localPosition.y + 0.1f, pop.transform.localPosition.z);
+            pop.transform.localScale = new Vector3(1.1f, 0.9f, 1.1f);
             yield return new WaitForSeconds(0.01f);
-            transform.localPosition = new Vector3(transform.localPosition.x, transform.localPosition.y + 0.1f, transform.localPosition.z);            
-            transform.localScale = new Vector3(1, 1, 1);
-            collider.enabled = true;
+            pop.transform.localPosition = new Vector3(pop.transform.localPosition.x, pop.transform.localPosition.y + 0.1f, pop.transform.localPosition.z);
+            pop.transform.localScale = new Vector3(1, 1, 1);
             yield return null;
         }
 
-        private GameObject Generate(Vector3 offset)
+        private GameObject GeneratePop(Vector3 offset, Vector3 defaultScale)
         {
             GameObject puyoSkelton = Resources.Load<GameObject>("Prefabs/Pop");
             GameObject puyoObj = Instantiate(puyoSkelton);
             puyoObj.name = puyoObj.name.Replace("(Clone)", "");
             puyoObj.transform.SetParent(transform);
             puyoObj.transform.position = transform.position + offset;
-            puyoObj.transform.localScale = new Vector3(0f, 0f, 0f);
+            puyoObj.transform.localScale = defaultScale;
             puyoObj.GetComponent<Renderer>().materials = adaptedMaterials;
             return puyoObj;
         }
 
         public IEnumerator PopAnimation()
         {
-            var pop1 = Generate(new Vector3(0.2f, 0.4f, 0f));
-            var pop2 = Generate(new Vector3(0.4f, 0.2f, 0f));
-            var pop3 = Generate(new Vector3(-0.3f, 0.3f, 0f));
-            var pop4 = Generate(new Vector3(-0.5f, 0.1f, 0f));
-            collider.enabled = false;
+            isFreeFall = false;
+            var pop1 = GeneratePop(new Vector3(0.2f, 0.4f, 0f), new Vector3(0f, 0f, 0f));
+            var pop2 = GeneratePop(new Vector3(0.4f, 0.2f, 0f), new Vector3(0f, 0f, 0f));
+            var pop3 = GeneratePop(new Vector3(-0.3f, 0.3f, 0f), new Vector3(0f, 0f, 0f));
+            var pop4 = GeneratePop(new Vector3(-0.5f, 0.1f, 0f), new Vector3(0f, 0f, 0f));
+            //collider.enabled = false;
             // Lerp でやりたいけど、もっというとアニメーターでやりたいから一旦仮置き
             transform.localScale = new Vector3(1.1f, 1.1f, 1.1f);
             yield return new WaitForSeconds(0.01f);
@@ -365,7 +401,7 @@ namespace Puyopuyo.UI {
             pop1.transform.localScale = new Vector3(0f, 0f, 0f);
             pop2.transform.localScale = new Vector3(0f, 0f, 0f);
             transform.localScale = new Vector3(0f, 0f, 0f);
-            collider.enabled = true;
+            //collider.enabled = true;
             yield return null;
             Destroy(this.GameObject);
         }
@@ -419,35 +455,12 @@ namespace Puyopuyo.UI {
             puyoBodyClock.NotifyBeginToFreeFall();
         }
 
-        /// <summary>
-        /// 強制的に Raycast を使って状態を変化させる
-        /// isKinematic = true にして回転したあとに false にした場合などは
-        /// OnCollisionEnter や OnCollisionExit が実行されないのでその救済措置
-        /// </summary>
-        private void ForceChangeState()
-        {
-            var hasCollision = Physics.Raycast(transform.position, Vector3.down, VectorToFallDown.magnitude - 0.1f);
-            if (hasCollision) {
-                if (State.IsFalling) {
-                    ToJustTouch();
-                    TryToKeepTouching();
-                    DoTouchAnimation();
-                    return;
-                }
-                return;
-            }
-            if (State.IsTouching)
-            {
-                ToCanceling();
-            }
-        }
-
         private void UpdateCollision()
         {
             var feelVectors = new Vector3[] {
                 Vector3.left,
                 Vector3.right,
-                VectorToFallDown
+                Vector3.down
             };
             foreach (var vector in feelVectors)
             {
@@ -457,7 +470,7 @@ namespace Puyopuyo.UI {
 
         private void FeelAroundFor(Vector3 direction)
         {
-            var hasCollision = Physics.Raycast(transform.position, direction, out RaycastHit hit, 0.9f);
+            var hasCollision = Physics.Raycast(transform.position, direction, out RaycastHit hit, 0.5f + VectorToFallDown.magnitude - 0.1f);
             if (!hasCollision)
             {
                 puyoCollision.SetCollider(direction, null);
@@ -467,10 +480,130 @@ namespace Puyopuyo.UI {
             puyoCollision.SetCollider(direction, hit.collider);
         }
 
+        private void UpdateConnect()
+        {
+            if (!State.IsStaying) { return; }
+            var feelVectors = new Vector3[] {
+                Vector3.left,
+                Vector3.right,
+                Vector3.down,
+                Vector3.up
+            };
+            foreach (var vector in feelVectors)
+            {
+                if (ShouldConnect(vector))
+                {
+                    // つなぐ
+                    GenerateConnect(vector);
+                }
+                else {
+                    // 切り離す
+                    RemoveConnect(vector);
+                }
+            }
+        }
+
+        private bool ShouldConnect(Vector3 direction)
+        {
+            var hasCollision = Physics.Raycast(transform.position, direction, out RaycastHit hit, 0.5f + VectorToFallDown.magnitude - 0.1f);
+            if (!hasCollision) { return false; }
+            if (IsPartner(hit.collider.gameObject)) { return false; }
+            var puyo = hit.collider.gameObject.GetComponent<IPuyo>();
+            if (puyo == null) { return false; }
+            if (puyo.MaterialIndex != MaterialIndex) { return false; }
+            return puyo.State.IsStaying;
+        }
+
+        private void GenerateConnect(Vector3 direction)
+        {
+            var connectObj = transform.Find($"Connect{GetVectorString(direction)}");
+            if (connectObj != null) { return; }
+            GameObject puyoSkelton = Resources.Load<GameObject>("Prefabs/Connect");
+            GameObject puyoObj = Instantiate(puyoSkelton);
+            puyoObj.name = puyoObj.name.Replace("(Clone)", GetVectorString(direction));
+            puyoObj.transform.SetParent(transform);
+            puyoObj.transform.position = transform.position + GetOffset(direction);
+            puyoObj.transform.localScale = new Vector3(50f, 50f, 50f);
+            puyoObj.transform.rotation = GetOuaternion(direction);
+            puyoObj.GetComponent<Renderer>().materials = adaptedMaterials;
+        }
+
+        private string GetVectorString(Vector3 direction)
+        {
+            var dir = direction.ToString();
+            if (dir == Vector3.left.ToString())
+            {
+                return "Left";
+            }
+            else if (dir == Vector3.right.ToString())
+            {
+                return "Right";
+            }
+            else if (dir == Vector3.up.ToString())
+            {
+                return "Up";
+            }
+            else if (dir == Vector3.down.ToString())
+            {
+                return "Down";
+            }
+            throw new Exception("予期しない direction が指定されました");
+        }
+
+        private Vector3 GetOffset(Vector3 direction)
+        {
+            var dir = direction.ToString();
+            if (dir == Vector3.left.ToString())
+            {
+                return new Vector3(-0.5f, 0f, 0f);
+            }
+            else if (dir == Vector3.right.ToString())
+            {
+                return new Vector3(0.5f, 0f, 0f);
+            }
+            else if (dir == Vector3.up.ToString())
+            {
+                return new Vector3(0f, 0.5f, 0f);
+            }
+            else if (dir == Vector3.down.ToString())
+            {
+                return new Vector3(0f, -0.5f, 0f);
+            }
+            throw new Exception("予期しない direction が指定されました");
+        }
+
+        private Quaternion GetOuaternion(Vector3 direction)
+        {
+            var dir = direction.ToString();
+            if (dir == Vector3.left.ToString())
+            {
+                return Quaternion.Euler(0f, -90f, 90);
+            }
+            else if (dir == Vector3.right.ToString())
+            {
+                return Quaternion.Euler(0f, 90f, 90);
+            }
+            else if (dir == Vector3.up.ToString())
+            {
+                return Quaternion.Euler(-90f, -90f, 90);
+            }
+            else if (dir == Vector3.down.ToString())
+            {
+                return Quaternion.Euler(90f, -90f, 90);
+            }
+            throw new Exception("予期しない direction が指定されました");
+        }
+
+        private void RemoveConnect(Vector3 direction)
+        {
+            var connectObj = transform.Find($"Connect{GetVectorString(direction)}");
+            if (connectObj == null) { return; }
+            Destroy(connectObj.gameObject);
+        }
 
         public bool CanMoveToLeft() => CanMoveTo(Vector3.left);
         public bool CanMoveToRight() => CanMoveTo(Vector3.right);
-        public bool CanMoveToDown() => CanMoveTo(VectorToFallDown);
+        public bool CanMoveToDown() => CanMoveTo(Vector3.down);
 
         /// <summary>
         /// 指定方向に移動できるかどうか

@@ -6,6 +6,7 @@ namespace Puyopuyo.Domain
     public class PuyoCollision
     {
         private Dictionary<string, Collider> dict;
+        public Dictionary<string, Collider> Dict => dict;
 
         public PuyoCollision()
         {
@@ -13,6 +14,7 @@ namespace Puyopuyo.Domain
             {
                 { Vector3.left.ToString(), null },
                 { Vector3.right.ToString(), null },
+                { Vector3.down.ToString(), null },
                 { new Vector3(0, UI.Puyo.AMOUNT_TO_FALL_UNDER_CONTROLL, 0).ToString(), null },
                 { new Vector3(0, UI.Puyo.AMOUNT_TO_FREE_FALL, 0).ToString(), null }
             };
