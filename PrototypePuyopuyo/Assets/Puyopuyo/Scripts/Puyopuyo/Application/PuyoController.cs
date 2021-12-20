@@ -1,3 +1,4 @@
+
 using com.amabie.SingletonKit;
 using UnityEngine;
 
@@ -98,6 +99,10 @@ namespace Puyopuyo.Application {
                 && (follower.State.IsFalling || follower.State.IsTouching);
         }
 
+        /// <summary>
+        /// TODO: 現状その場で回していても落下タイミングによって Touching にいきなり切り替わるバグあり
+        /// </summary>
+        /// <param name="rotateDirection"></param>
         private void RotateTo(Domain.PuyoRotation.Direction rotateDirection)
         {
             if (isRotating) { return; }
